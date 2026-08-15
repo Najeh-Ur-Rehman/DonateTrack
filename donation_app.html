@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DonateTrack — Donation Manager</title>
+  <meta name="description" content="Track and manage donations with ease. Record, search, and export donation data.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#10b981">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================
+       ROOT VARIABLES & THEMING
+       ======================================== */
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --primary-light: #d1fae5;
+      --primary-glow: rgba(16, 185, 129, 0.25);
+      --accent: #6366f1;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --warning: #f59e0b;
+
+      --bg: #f0f2f5;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --bg-hover: #f1f5f9;
+      --bg-nav: rgba(255, 255, 255, 0.92);
+
+      --text: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --border: #e2e8f0;
+      --divider: #f1f5f9;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --shadow-primary: 0 4px 14px rgba(16, 185, 129, 0.35);
+
+      --radius: 16px;
+      --radius-sm: 12px;
+      --radius-xs: 8px;
+      --nav-h: 68px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html[data-theme="dark"] {
+      --bg: #0c1222;
+      --bg-card: #1a2332;
+      --bg-input: #243044;
+      --bg-hover: #243044;
+      --bg-nav: rgba(26, 35, 50, 0.92);
+      --text: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: #2d3f55;
+      --divider: #243044;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+      --primary-light: #064e3b;
+      --danger-light: #451a1a;
+    }
+
+    /* ========================================
+       RESET & BASE
+       ======================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    /* ========================================
+       SPLASH SCREEN
+       ======================================== */
+    .splash-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    .splash-overlay.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .splash-logo {
+      width: 90px; height: 90px;
+      animation: splash-pulse 1.5s ease-in-out infinite alternate;
+    }
+    .splash-title {
+      font-size: 1.75rem; font-weight: 800; color: white;
+      margin-top: 1.25rem; letter-spacing: -0.5px;
+    }
+    .splash-subtitle {
+      font-size: 0.85rem; color: rgba(255,255,255,0.5);
+      margin-top: 0.5rem; font-weight: 400;
+    }
+    .splash-dots {
+      display: flex; gap: 6px; margin-top: 2rem;
+    }
+    .splash-dots span {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--primary);
+      animation: dot-pulse 1.2s ease-in-out infinite;
+    }
+    .splash-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .splash-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    /* ========================================
+       PIN LOCK SCREEN
+       ======================================== */
+    .pin-overlay {
+      position: fixed; inset: 0; z-index: 9998;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .pin-overlay.show { display: flex; }
+
+    .pin-lock-icon {
+      width: 48px; height: 48px; color: var(--primary);
+      margin-bottom: 1.5rem;
+    }
+    .pin-heading {
+      font-size: 1.25rem; font-weight: 600; color: white;
+      margin-bottom: 0.5rem;
+    }
+    .pin-sub {
+      font-size: 0.8rem; color: rgba(255,255,255,0.4);
+      margin-bottom: 1.5rem; min-height: 1.2em;
+    }
+    .pin-dots-row {
+      display: flex; gap: 14px; margin-bottom: 2rem;
+    }
+    .pin-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      transition: all 0.2s;
+    }
+    .pin-dot.filled {
+      background: var(--primary); border-color: var(--primary);
+      transform: scale(1.1);
+    }
+    .pin-dot.error {
+      background: var(--danger); border-color: var(--danger);
+    }
+
+    .pin-pad {
+      display: grid; grid-template-columns: repeat(3, 72px);
+      gap: 12px;
+    }
+    .pin-key {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+      color: white; font-size: 1.5rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pin-key:hover { background: rgba(255,255,255,0.15); }
+    .pin-key:active { transform: scale(0.92); }
+    .pin-key.empty { visibility: hidden; }
+    .pin-key.backspace { font-size: 1.2rem; }
+    .pin-key.backspace svg { width: 24px; height: 24px; }
+
+    .pin-shake {
+      animation: shake 0.4s ease;
+    }
+
+    /* ========================================
+       APP SHELL
+       ======================================== */
+    #mainApp {
+      display: none;
+      min-height: 100vh;
+    }
+    #mainApp.show { display: block; }
+
+    .screen {
+      display: none;
+      padding: 1.25rem;
+      padding-bottom: calc(var(--nav-h) + 2rem);
+      min-height: 100vh;
+      animation: fadeIn 0.3s ease;
+    }
+    .screen.active { display: block; }
+
+    .screen-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; padding-top: 0.5rem;
+    }
+    .screen-header h1 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;
+    }
+    .screen-header .cancel-btn {
+      background: none; border: none; color: var(--danger);
+      font-weight: 600; font-size: 0.9rem; cursor: pointer;
+      padding: 0.5rem 1rem; border-radius: var(--radius-xs);
+      transition: background var(--transition);
+    }
+    .screen-header .cancel-btn:hover { background: var(--danger-light); }
+
+    /* ========================================
+       BOTTOM NAVIGATION
+       ======================================== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: var(--bg-nav);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; align-items: center;
+      z-index: 100;
+      padding: 0 0.5rem;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .nav-btn {
+      background: none; border: none; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 6px 16px;
+      color: var(--text-muted); transition: color var(--transition);
+      position: relative;
+    }
+    .nav-btn svg { width: 22px; height: 22px; transition: color var(--transition); }
+    .nav-btn span { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.02em; }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn.active::before {
+      content: ''; position: absolute; top: -1px;
+      width: 24px; height: 3px; border-radius: 0 0 3px 3px;
+      background: var(--primary);
+    }
+
+    /* Add FAB Button */
+    .nav-btn.fab-btn {
+      padding: 0; margin-top: -18px;
+    }
+    .nav-fab {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-primary);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-fab svg { width: 26px; height: 26px; color: white; }
+    .nav-btn.fab-btn:active .nav-fab { transform: scale(0.9); }
+    .nav-btn.fab-btn.active::before { display: none; }
+    .nav-btn.fab-btn span { margin-top: 4px; }
+
+    /* ========================================
+       HOME SCREEN
+       ======================================== */
+    .greeting { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+    .greeting-emoji { font-size: 1.3rem; }
+    .date-display { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+
+    .total-card {
+      background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+      color: white; padding: 1.5rem; border-radius: var(--radius);
+      margin-bottom: 1.25rem;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .total-label { font-size: 0.85rem; opacity: 0.9; font-weight: 500; }
+    .total-sublabel { font-size: 0.7rem; opacity: 0.65; margin-top: 2px; }
+    .total-amount { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+    .total-alltime { font-size: 0.7rem; opacity: 0.6; text-align: right; margin-top: 4px; }
+
+    .quick-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem; margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--bg-card); border-radius: var(--radius-sm);
+      padding: 1rem; text-align: center;
+      box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .stat-value {
+      font-size: 1.15rem; font-weight: 700; color: var(--text);
+      margin-bottom: 2px;
+    }
+    .stat-label {
+      font-size: 0.7rem; color: var(--text-muted); font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    /* 7-Day Chart */
+    .chart-section {
+      background: var(--bg-card); border-radius: var(--radius-sm);
+      padding: 1.25rem; margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .chart-section h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; }
+
+    .chart-bars {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      height: 120px; gap: 8px; padding: 0 4px;
+    }
+    .chart-col {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 6px; height: 100%;
+      justify-content: flex-end;
+    }
+    .chart-bar {
+      width: 100%; max-width: 36px; border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+      min-height: 4px; transition: height 0.5s ease;
+      position: relative;
+    }
+    .chart-bar:hover { opacity: 0.85; }
+    .chart-bar-value {
+      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 0.6rem; font-weight: 600; color: var(--text-muted);
+      white-space: nowrap; display: none;
+    }
+    .chart-col:hover .chart-bar-value { display: block; }
+    .chart-label {
+      font-size: 0.65rem; color: var(--text-muted); font-weight: 600;
+    }
+    .chart-today .chart-bar {
+      background: linear-gradient(180deg, var(--accent), #4f46e5);
+    }
+
+    /* Recent Donations */
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .section-header h3 { font-size: 0.85rem; font-weight: 700; }
+    .section-header button {
+      background: none; border: none; color: var(--primary);
+      font-weight: 600; font-size: 0.8rem; cursor: pointer;
+    }
+
+    .recent-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem; background: var(--bg-card);
+      border-radius: var(--radius-sm); margin-bottom: 0.5rem;
+      border: 1px solid var(--border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .recent-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0;
+    }
+    .recent-info { flex: 1; min-width: 0; }
+    .recent-name {
+      font-size: 0.85rem; font-weight: 600;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .recent-date { font-size: 0.7rem; color: var(--text-muted); }
+    .recent-amount {
+      font-weight: 700; color: var(--primary-dark); font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    html[data-theme="dark"] .recent-amount { color: var(--primary); }
+
+    /* Quick Donate */
+    .quick-donate {
+      margin-bottom: 1rem;
+    }
+    .quick-donate h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .quick-amounts {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
+    }
+    .quick-amt-btn {
+      padding: 0.75rem 0.5rem; border-radius: var(--radius-xs);
+      background: var(--bg-card); border: 2px solid var(--border);
+      font-weight: 700; font-size: 0.85rem; color: var(--text);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .quick-amt-btn:hover {
+      border-color: var(--primary); color: var(--primary);
+      background: var(--primary-light);
+    }
+    .quick-amt-btn:active { transform: scale(0.95); }
+
+    /* ========================================
+       ADD DONATION SCREEN
+       ======================================== */
+    .amount-presets {
+      display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .preset-chip {
+      padding: 0.5rem 1rem; border-radius: 20px;
+      background: var(--bg-card); border: 2px solid var(--border);
+      font-weight: 600; font-size: 0.8rem; color: var(--text-secondary);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .preset-chip:hover, .preset-chip.active {
+      border-color: var(--primary); color: var(--primary);
+      background: var(--primary-light);
+    }
+    .preset-chip:active { transform: scale(0.95); }
+
+    /* Floating Label Fields */
+    .form-field {
+      position: relative; margin-bottom: 1.25rem;
+    }
+    .form-field input,
+    .form-field textarea {
+      width: 100%; padding: 1.25rem 1rem 0.6rem;
+      border: 2px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 0.95rem; font-family: inherit;
+      background: var(--bg-input); color: var(--text);
+      transition: all 0.2s; outline: none;
+    }
+    .form-field textarea { resize: vertical; min-height: 70px; }
+    .form-field label {
+      position: absolute; left: 1rem; top: 0.95rem;
+      font-size: 0.9rem; color: var(--text-muted);
+      transition: all 0.2s ease; pointer-events: none;
+      background: transparent;
+    }
+    .form-field input:focus,
+    .form-field textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-glow);
+    }
+    .form-field input:focus + label,
+    .form-field input:not(:placeholder-shown) + label,
+    .form-field textarea:focus + label,
+    .form-field textarea:not(:placeholder-shown) + label {
+      top: 0.3rem; font-size: 0.7rem; font-weight: 600;
+      color: var(--primary);
+    }
+    .field-error {
+      font-size: 0.75rem; color: var(--danger); margin-top: 4px;
+      min-height: 0; overflow: hidden;
+      transition: all 0.2s;
+    }
+    .field-error:not(:empty) { min-height: 1rem; margin-top: 6px; }
+
+    .form-field.has-error input,
+    .form-field.has-error textarea {
+      border-color: var(--danger);
+    }
+
+    /* Category Pills */
+    .category-select { margin-bottom: 1.25rem; }
+    .category-select > label {
+      font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
+      margin-bottom: 0.5rem; display: block;
+    }
+    .category-pills {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+    }
+    .cat-pill {
+      padding: 0.45rem 0.85rem; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.2s;
+      display: flex; align-items: center; gap: 5px;
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+    }
+    .cat-pill .cat-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .cat-pill.active {
+      border-color: currentColor;
+    }
+
+    /* Optional Fields Toggle */
+    .toggle-more {
+      background: none; border: none; color: var(--text-muted);
+      font-weight: 600; font-size: 0.8rem; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      padding: 0.5rem 0; margin-bottom: 0.5rem;
+    }
+    .toggle-more .chevron-icon {
+      transition: transform 0.3s; font-size: 0.65rem;
+    }
+    .toggle-more.open .chevron-icon { transform: rotate(180deg); }
+
+    .optional-fields {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+
+    /* Submit Button */
+    .btn-donate {
+      width: 100%; padding: 1rem; border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; font-weight: 700; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: var(--shadow-primary);
+      font-family: inherit;
+    }
+    .btn-donate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.45); }
+    .btn-donate:active { transform: translateY(0) scale(0.98); }
+    .btn-donate.updating {
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+
+    /* ========================================
+       HISTORY SCREEN
+       ======================================== */
+    .history-filters { margin-bottom: 1rem; }
+
+    .time-filters {
+      display: flex; gap: 0.4rem; margin-bottom: 0.75rem;
+    }
+    .filter-btn {
+      padding: 0.45rem 0.9rem; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-secondary); transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: var(--primary); color: white;
+      border-color: var(--primary);
+    }
+
+    .cat-filters-row {
+      display: flex; gap: 0.35rem; margin-bottom: 0.75rem;
+      overflow-x: auto; padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .cat-filters-row::-webkit-scrollbar { height: 0; }
+    .cat-filter-btn {
+      padding: 0.35rem 0.75rem; border-radius: 16px;
+      font-size: 0.72rem; font-weight: 600; cursor: pointer;
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-secondary); white-space: nowrap; transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .cat-filter-btn.active {
+      background: var(--text); color: var(--bg-card);
+      border-color: var(--text);
+    }
+
+    .search-sort-row {
+      display: flex; gap: 0.5rem; margin-bottom: 0.75rem;
+    }
+    .search-bar {
+      flex: 1; position: relative;
+    }
+    .search-bar svg {
+      position: absolute; left: 0.85rem; top: 50%;
+      transform: translateY(-50%); width: 16px; height: 16px;
+      color: var(--text-muted); pointer-events: none;
+    }
+    .search-bar input {
+      width: 100%; padding: 0.65rem 0.85rem 0.65rem 2.5rem;
+      border: 1px solid var(--border); border-radius: var(--radius-xs);
+      font-size: 0.85rem; background: var(--bg-card); color: var(--text);
+      outline: none; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .search-bar input:focus { border-color: var(--primary); }
+
+    .sort-select {
+      padding: 0.65rem 0.85rem; border: 1px solid var(--border);
+      border-radius: var(--radius-xs); font-size: 0.8rem;
+      background: var(--bg-card); color: var(--text);
+      font-family: inherit; cursor: pointer; outline: none;
+      min-width: 100px;
+    }
+
+    /* Donation Cards */
+    .donation-card {
+      background: var(--bg-card); border-radius: var(--radius-sm);
+      padding: 1rem; margin-bottom: 0.6rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition);
+      animation: cardSlideIn 0.35s ease backwards;
+    }
+    .donation-card:hover { box-shadow: var(--shadow-md); }
+
+    .card-top {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .card-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; color: white; flex-shrink: 0;
+    }
+    .card-info { flex: 1; min-width: 0; }
+    .card-name {
+      font-weight: 700; font-size: 0.9rem;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card-meta {
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 2px;
+      flex-wrap: wrap;
+    }
+    .card-date { font-size: 0.72rem; color: var(--text-muted); }
+    .cat-tag {
+      font-size: 0.65rem; font-weight: 700; padding: 2px 8px;
+      border-radius: 10px; text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .card-amount {
+      font-weight: 800; font-size: 1.1rem; color: var(--primary-dark);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    html[data-theme="dark"] .card-amount { color: var(--primary); }
+
+    .card-message {
+      font-size: 0.8rem; color: var(--text-muted); font-style: italic;
+      margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--divider);
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; line-height: 1.4;
+    }
+
+    .card-actions {
+      display: flex; gap: 0.25rem; margin-top: 0.5rem;
+      padding-top: 0.5rem; border-top: 1px solid var(--divider);
+      justify-content: flex-end;
+    }
+    .card-action-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 0.4rem; border-radius: var(--radius-xs);
+      color: var(--text-muted); transition: all 0.15s;
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .card-action-btn svg { width: 14px; height: 14px; }
+    .card-action-btn:hover { background: var(--bg-hover); }
+    .card-action-btn.edit:hover { color: var(--accent); }
+    .card-action-btn.delete:hover { color: var(--danger); }
+
+    .history-empty {
+      text-align: center; padding: 3rem 1rem; color: var(--text-muted);
+    }
+    .history-empty-icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.5; }
+    .history-empty p { font-size: 0.9rem; }
+
+    .history-count {
+      font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* ========================================
+       SETTINGS SCREEN
+       ======================================== */
+    .settings-group {
+      background: var(--bg-card); border-radius: var(--radius-sm);
+      border: 1px solid var(--border); overflow: hidden;
+      margin-bottom: 1rem; transition: all var(--transition);
+    }
+    .settings-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--divider);
+    }
+    .settings-item:last-child { border-bottom: none; }
+    .settings-label { font-weight: 600; font-size: 0.9rem; }
+    .settings-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Toggle Switch */
+    .toggle {
+      position: relative; width: 48px; height: 28px;
+      display: inline-block; flex-shrink: 0;
+    }
+    .toggle input { display: none; }
+    .slider {
+      position: absolute; inset: 0; cursor: pointer;
+      background: var(--border); border-radius: 28px;
+      transition: all 0.3s;
+    }
+    .slider::before {
+      content: ''; position: absolute;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: white; left: 3px; top: 3px;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked + .slider {
+      background: var(--primary);
+    }
+    .toggle input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+
+    /* Settings Action Buttons */
+    .settings-action {
+      width: 100%; padding: 1rem 1.25rem; background: none;
+      border: none; border-bottom: 1px solid var(--divider);
+      text-align: left; font-size: 0.9rem; font-weight: 600;
+      color: var(--text); cursor: pointer; font-family: inherit;
+      transition: background 0.15s;
+    }
+    .settings-action:last-child { border-bottom: none; }
+    .settings-action:hover { background: var(--bg-hover); }
+    .settings-action.danger { color: var(--danger); }
+
+    .app-info {
+      text-align: center; padding: 2rem 1rem; color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    .app-info p { margin-bottom: 0.25rem; }
+
+    /* ========================================
+       MODALS
+       ======================================== */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal-card {
+      background: var(--bg-card); border-radius: var(--radius);
+      padding: 1.75rem; max-width: 380px; width: 100%;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s ease;
+    }
+    .modal-card h3 {
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;
+    }
+    .modal-card p {
+      font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+    .modal-actions {
+      display: flex; gap: 0.75rem; justify-content: flex-end;
+    }
+    .modal-btn {
+      padding: 0.6rem 1.25rem; border-radius: var(--radius-xs);
+      font-weight: 600; font-size: 0.85rem; cursor: pointer;
+      border: none; transition: all 0.15s; font-family: inherit;
+    }
+    .modal-btn.cancel {
+      background: var(--bg-hover); color: var(--text-secondary);
+    }
+    .modal-btn.cancel:hover { background: var(--border); }
+    .modal-btn.danger {
+      background: var(--danger); color: white;
+    }
+    .modal-btn.danger:hover { background: #dc2626; }
+
+    /* ========================================
+       SUCCESS OVERLAY
+       ======================================== */
+    .success-overlay {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      padding: 1.5rem; flex-direction: column;
+    }
+    .success-overlay.show { display: flex; }
+
+    .success-content {
+      text-align: center; max-width: 360px; width: 100%;
+      animation: slideUp 0.4s ease;
+    }
+    .success-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem; animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .success-icon svg { width: 40px; height: 40px; color: white; }
+
+    .success-title {
+      font-size: 1.3rem; font-weight: 800; color: white;
+      margin-bottom: 1.25rem;
+    }
+
+    .receipt-card {
+      background: var(--bg-card); border-radius: var(--radius-sm);
+      padding: 1.25rem; text-align: left;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-lg);
+    }
+    .receipt-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding-bottom: 0.75rem; margin-bottom: 0.75rem;
+      border-bottom: 2px dashed var(--divider);
+    }
+    .receipt-header svg { width: 20px; height: 20px; color: var(--primary); }
+    .receipt-header span { font-weight: 700; font-size: 0.9rem; color: var(--primary); }
+    .receipt-row {
+      display: flex; justify-content: space-between;
+      padding: 0.35rem 0; font-size: 0.85rem;
+    }
+    .receipt-label { color: var(--text-muted); font-weight: 500; }
+    .receipt-value { font-weight: 600; text-align: right; max-width: 60%; }
+    .receipt-amount {
+      font-size: 1.3rem; font-weight: 800; color: var(--primary-dark);
+      text-align: center; padding: 0.75rem 0;
+      border-top: 2px dashed var(--divider);
+      margin-top: 0.5rem;
+    }
+    html[data-theme="dark"] .receipt-amount { color: var(--primary); }
+    .receipt-ref {
+      text-align: center; font-size: 0.7rem; color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .success-actions {
+      display: flex; gap: 0.75rem; justify-content: center;
+    }
+    .success-btn {
+      padding: 0.7rem 1.5rem; border-radius: var(--radius-xs);
+      font-weight: 600; font-size: 0.85rem; cursor: pointer;
+      border: none; transition: all 0.15s; font-family: inherit;
+    }
+    .success-btn.share {
+      background: rgba(255,255,255,0.15); color: white;
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+    .success-btn.share:hover { background: rgba(255,255,255,0.25); }
+    .success-btn.done {
+      background: var(--primary); color: white;
+    }
+    .success-btn.done:hover { background: var(--primary-dark); }
+
+    /* Confetti */
+    .confetti-container {
+      position: fixed; inset: 0; pointer-events: none; z-index: 601;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute; width: 8px; height: 8px;
+      border-radius: 2px; top: -10px;
+      animation: confetti-fall linear forwards;
+    }
+
+    /* ========================================
+       PIN SETUP MODAL
+       ======================================== */
+    .pin-setup-modal .modal-card {
+      text-align: center; max-width: 320px;
+    }
+    .pin-setup-modal .pin-dots-row {
+      justify-content: center; margin: 1rem 0;
+    }
+    .pin-setup-modal .pin-pad {
+      margin: 0 auto 1rem;
+    }
+    .pin-setup-modal .pin-key {
+      background: var(--bg-hover); color: var(--text);
+      border-color: var(--border);
+    }
+    .pin-setup-modal .pin-key:hover { background: var(--border); }
+    .pin-setup-cancel {
+      background: none; border: none; color: var(--text-muted);
+      font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;
+      font-family: inherit; font-size: 0.85rem;
+    }
+
+    /* ========================================
+       TOAST NOTIFICATIONS
+       ======================================== */
+    .toast-container {
+      position: fixed; top: 1rem; left: 50%;
+      transform: translateX(-50%); z-index: 9000;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      pointer-events: none; width: calc(100% - 2rem); max-width: 380px;
+    }
+    .toast {
+      background: var(--bg-card); border-radius: var(--radius-sm);
+      padding: 0.85rem 1.15rem; display: flex; align-items: center; gap: 0.75rem;
+      box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+      pointer-events: auto; animation: toastIn 0.3s ease;
+      font-size: 0.85rem; font-weight: 500;
+    }
+    .toast.out { animation: toastOut 0.3s ease forwards; }
+    .toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .toast.success { border-left: 4px solid var(--primary); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.info { border-left: 4px solid var(--accent); }
+
+    /* ========================================
+       ANIMATIONS
+       ======================================== */
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      0% { transform: scale(0); }
+      100% { transform: scale(1); }
+    }
+    @keyframes cardSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-16px); }
+    }
+    @keyframes confetti-fall {
+      0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+    }
+    @keyframes splash-pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+    @keyframes dot-pulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+    @media (min-width: 600px) {
+      .screen { max-width: 480px; margin: 0 auto; }
+      .bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); border-radius: 20px 20px 0 0; }
+    }
+    @media (max-width: 360px) {
+      .quick-amounts { grid-template-columns: repeat(2, 1fr); }
+      .quick-stats { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+      .stat-card { padding: 0.75rem 0.5rem; }
+      .stat-value { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ SPLASH SCREEN ============ -->
+  <div id="splashScreen" class="splash-overlay">
+    <svg class="splash-logo" viewBox="0 0 80 80">
+      <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs>
+      <circle cx="40" cy="40" r="36" fill="url(#sg)"/>
+      <path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/>
+    </svg>
+    <div class="splash-title">DonateTrack</div>
+    <div class="splash-subtitle">Track Every Contribution</div>
+    <div class="splash-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- ============ PIN LOCK SCREEN ============ -->
+  <div id="pinLockScreen" class="pin-overlay">
+    <svg class="pin-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+    </svg>
+    <div class="pin-heading">Enter PIN</div>
+    <div class="pin-sub" id="pinLockSub"></div>
+    <div class="pin-dots-row" id="pinLockDots">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-pad" id="pinLockPad"></div>
+  </div>
+
+  <!-- ============ MAIN APP ============ -->
+  <div id="mainApp">
+
+    <!-- ====== HOME SCREEN ====== -->
+    <div id="screenHome" class="screen active">
+      <div class="screen-header" style="flex-direction:column; align-items:flex-start; gap:2px;">
+        <h1 class="greeting" id="greeting"></h1>
+        <p class="date-display" id="dateDisplay"></p>
+      </div>
+
+      <div class="total-card">
+        <div>
+          <div class="total-label">Total Collected</div>
+          <div class="total-sublabel" id="monthLabel"></div>
+        </div>
+        <div style="text-align:right">
+          <div class="total-amount" id="homeTotal">₹0</div>
+          <div class="total-alltime" id="homeAlltime"></div>
+        </div>
+      </div>
+
+      <div class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-value" id="statDonors">0</div>
+          <div class="stat-label">Donors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statAvg">₹0</div>
+          <div class="stat-label">Average</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statHighest">₹0</div>
+          <div class="stat-label">Highest</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <h3>Last 7 Days</h3>
+        <div class="chart-bars" id="weekChart"></div>
+      </div>
+
+      <div class="section-header">
+        <h3>Recent Donations</h3>
+        <button onclick="switchTab('history')">View All →</button>
+      </div>
+      <div id="recentList"></div>
+
+      <div class="quick-donate" style="margin-top:1.25rem">
+        <h3>Quick Donate</h3>
+        <div class="quick-amounts">
+          <button class="quick-amt-btn" onclick="quickDonate(100)">₹100</button>
+          <button class="quick-amt-btn" onclick="quickDonate(500)">₹500</button>
+          <button class="quick-amt-btn" onclick="quickDonate(1000)">₹1,000</button>
+          <button class="quick-amt-btn" onclick="quickDonate(5000)">₹5,000</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== ADD DONATION SCREEN ====== -->
+    <div id="screenAdd" class="screen">
+      <div class="screen-header">
+        <h1 id="addTitle">New Donation</h1>
+        <button class="cancel-btn" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel</button>
+      </div>
+
+      <div class="amount-presets" id="amountPresets">
+        <button class="preset-chip" onclick="setAmount(100, this)">₹100</button>
+        <button class="preset-chip" onclick="setAmount(500, this)">₹500</button>
+        <button class="preset-chip" onclick="setAmount(1000, this)">₹1,000</button>
+        <button class="preset-chip" onclick="setAmount(5000, this)">₹5,000</button>
+        <button class="preset-chip" onclick="setAmount(10000, this)">₹10,000</button>
+      </div>
+
+      <form id="donationForm" novalidate>
+        <div class="form-field" id="nameField">
+          <input type="text" id="nameInput" placeholder=" " autocomplete="off">
+          <label for="nameInput">Donor Name *</label>
+          <div class="field-error" id="nameError"></div>
+        </div>
+
+        <div class="form-field" id="amountField">
+          <input type="number" id="amountInput" placeholder=" " min="1" step="1">
+          <label for="amountInput">Amount (₹) *</label>
+          <div class="field-error" id="amountError"></div>
+        </div>
+
+        <div class="category-select">
+          <label>Category</label>
+          <div class="category-pills" id="categoryPills"></div>
+        </div>
+
+        <div class="form-field">
+          <textarea id="messageInput" placeholder=" " rows="2"></textarea>
+          <label for="messageInput">Message (Optional)</label>
+        </div>
+
+        <div>
+          <button type="button" class="toggle-more" id="toggleMoreBtn" onclick="toggleOptional()">
+            More Details <span class="chevron-icon">▼</span>
+          </button>
+          <div class="optional-fields" id="optionalFields">
+            <div class="form-field">
+              <input type="tel" id="phoneInput" placeholder=" " autocomplete="off">
+              <label for="phoneInput">Phone (Optional)</label>
+            </div>
+            <div class="form-field">
+              <input type="email" id="emailInput" placeholder=" " autocomplete="off">
+              <label for="emailInput">Email (Optional)</label>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-donate" id="submitBtn">Process Donation</button>
+      </form>
+    </div>
+
+    <!-- ====== HISTORY SCREEN ====== -->
+    <div id="screenHistory" class="screen">
+      <div class="screen-header">
+        <h1>History</h1>
+      </div>
+
+      <div class="history-filters">
+        <div class="time-filters" id="timeFilters">
+          <button class="filter-btn active" data-time="all" onclick="setTimeFilter('all', this)">All</button>
+          <button class="filter-btn" data-time="month" onclick="setTimeFilter('month', this)">This Month</button>
+          <button class="filter-btn" data-time="week" onclick="setTimeFilter('week', this)">This Week</button>
+        </div>
+        <div class="cat-filters-row" id="catFilters"></div>
+        <div class="search-sort-row">
+          <div class="search-bar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Search donors..." autocomplete="off">
+          </div>
+          <select class="sort-select" id="sortSelect" onchange="renderHistory()">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="highest">Highest</option>
+            <option value="lowest">Lowest</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="history-count" id="historyCount"></div>
+      <div id="donationList"></div>
+      <div class="history-empty" id="historyEmpty" style="display:none">
+        <div class="history-empty-icon">📋</div>
+        <p>No donations found</p>
+      </div>
+    </div>
+
+    <!-- ====== SETTINGS SCREEN ====== -->
+    <div id="screenSettings" class="screen">
+      <div class="screen-header">
+        <h1>Settings</h1>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-item">
+          <div>
+            <div class="settings-label">Dark Mode</div>
+            <div class="settings-desc">Switch to dark theme</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-item">
+          <div>
+            <div class="settings-label">PIN Lock</div>
+            <div class="settings-desc" id="pinStatusText">Not set</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="pinToggle" onchange="handlePinToggle()">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <button class="settings-action" onclick="exportCSV()">📊 Export Data as CSV</button>
+        <button class="settings-action danger" onclick="showClearModal()">🗑️ Clear All Data</button>
+      </div>
+
+      <div class="app-info">
+        <p><strong>DonateTrack</strong> v1.0</p>
+        <p>Built with ❤️</p>
+      </div>
+    </div>
+
+    <!-- ====== BOTTOM NAVIGATION ====== -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-btn active" data-tab="home" onclick="switchTab('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-btn fab-btn" data-tab="add" onclick="switchTab('add')">
+        <div class="nav-fab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </div>
+        <span>Add</span>
+      </button>
+      <button class="nav-btn" data-tab="history" onclick="switchTab('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>History</span>
+      </button>
+      <button class="nav-btn" data-tab="settings" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ============ DELETE MODAL ============ -->
+  <div id="deleteModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3>Delete Donation</h3>
+      <p>Are you sure you want to delete <strong id="deleteDonorName"></strong>'s donation of <strong id="deleteAmount"></strong>? This cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal('deleteModal')">Cancel</button>
+        <button class="modal-btn danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CLEAR DATA MODAL ============ -->
+  <div id="clearModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3>⚠️ Clear All Data</h3>
+      <p>This will permanently delete <strong>all</strong> donation records. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal('clearModal')">Cancel</button>
+        <button class="modal-btn danger" onclick="clearAllData()">Clear Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PIN SETUP MODAL ============ -->
+  <div id="pinSetupModal" class="modal-overlay pin-setup-modal">
+    <div class="modal-card">
+      <h3 id="pinSetupTitle">Set PIN</h3>
+      <div class="pin-dots-row" id="setupPinDots">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <p id="pinSetupText" style="font-size:0.8rem; margin-bottom:0.75rem;">Enter a 4-digit PIN</p>
+      <div class="pin-pad" id="setupPinPad"></div>
+      <button class="pin-setup-cancel" onclick="closePinSetup()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ============ SUCCESS OVERLAY ============ -->
+  <div id="successOverlay" class="success-overlay">
+    <div class="success-content">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="success-title">Donation Recorded!</div>
+      <div class="receipt-card" id="receiptCard"></div>
+      <div class="success-actions">
+        <button class="success-btn share" onclick="shareReceipt()">Share</button>
+        <button class="success-btn done" onclick="closeSuccess()">Done</button>
+      </div>
+    </div>
+    <div class="confetti-container" id="confettiContainer"></div>
+  </div>
+
+  <!-- ============ TOAST CONTAINER ============ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+
+  <!-- ========================================================================
+       JAVASCRIPT
+       ======================================================================== -->
+  <script>
+    // ===== CONSTANTS =====
+    const CATEGORIES = {
+      general:   { label: 'General',   color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
+      medical:   { label: 'Medical',   color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+      education: { label: 'Education', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+      food:      { label: 'Food',      color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+      emergency: { label: 'Emergency', color: '#ec4899', bg: 'rgba(236,72,153,0.12)' },
+      other:     { label: 'Other',     color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' }
+    };
+
+    const AVATAR_COLORS = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#14b8a6','#f97316','#06b6d4'];
+
+    const fmtCurrency = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+    const fmtDate = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+    const fmtDateShort = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' });
+    const fmtMonthYear = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' });
+
+    // ===== STATE =====
+    let donations = [];
+    let editingId = null;
+    let selectedCategory = 'general';
+    let currentTimeFilter = 'all';
+    let currentCatFilter = 'all';
+    let lastDonation = null;
+    let deleteTargetId = null;
+
+    // PIN state
+    let pinLockAttempt = '';
+    let pinSetupStep = 0; // 0 = enter, 1 = confirm
+    let pinSetupValue = '';
+    let pinSetupAttempt = '';
+
+    // ===== UTILITIES =====
+    function uuid() {
+      return 'DT-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+    }
+
+    function sanitize(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML.trim();
+    }
+
+    function getInitials(name) {
+      return name.split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+    }
+
+    function getAvatarColor(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
+    function shortAmount(n) {
+      if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1) + 'Cr';
+      if (n >= 100000) return '₹' + (n / 100000).toFixed(1) + 'L';
+      if (n >= 1000) return '₹' + (n / 1000).toFixed(1) + 'K';
+      return '₹' + n;
+    }
+
+    function getGreeting() {
+      const h = new Date().getHours();
+      if (h < 12) return 'Good Morning';
+      if (h < 17) return 'Good Afternoon';
+      return 'Good Evening';
+    }
+
+    // ===== DATA LAYER =====
+    function loadData() {
+      try {
+        const raw = JSON.parse(localStorage.getItem('donations')) || [];
+        donations = raw.map(d => ({
+          id: d.id || uuid(),
+          name: d.name || 'Unknown',
+          amount: Number(d.amount) || 0,
+          message: d.message || '',
+          date: d.date || new Date().toISOString(),
+          category: d.category || 'general',
+          phone: d.phone || '',
+          email: d.email || ''
+        }));
+        saveData();
+      } catch {
+        donations = [];
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('donations', JSON.stringify(donations));
+    }
+
+    // ===== NAVIGATION =====
+    function switchTab(tab) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+
+      if (tab === 'home') renderHome();
+      if (tab === 'history') renderHistory();
+      if (tab === 'settings') loadSettings();
+      if (tab === 'add' && !editingId) {
+        // Ensure clean form state when switching to add
+      }
+      if (tab !== 'add' && editingId) cancelEdit();
+    }
+
+    // ===== HOME SCREEN =====
+    function renderHome() {
+      const now = new Date();
+      document.getElementById('greeting').innerHTML = getGreeting() + ' <span class="greeting-emoji">👋</span>';
+      document.getElementById('dateDisplay').textContent = fmtMonthYear.format(now);
+
+      const cm = now.getMonth(), cy = now.getFullYear();
+      const monthDonations = donations.filter(d => {
+        const dd = new Date(d.date);
+        return dd.getMonth() === cm && dd.getFullYear() === cy;
+      });
+      const monthTotal = monthDonations.reduce((s, d) => s + d.amount, 0);
+      const allTotal = donations.reduce((s, d) => s + d.amount, 0);
+
+      document.getElementById('monthLabel').textContent = now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+      document.getElementById('homeTotal').textContent = fmtCurrency.format(monthTotal);
+      document.getElementById('homeAlltime').textContent = 'All time: ' + fmtCurrency.format(allTotal);
+
+      // Quick stats
+      const donorCount = monthDonations.length;
+      const avgDonation = donorCount ? Math.round(monthTotal / donorCount) : 0;
+      const highestDonation = donorCount ? Math.max(...monthDonations.map(d => d.amount)) : 0;
+      document.getElementById('statDonors').textContent = donorCount;
+      document.getElementById('statAvg').textContent = shortAmount(avgDonation);
+      document.getElementById('statHighest').textContent = shortAmount(highestDonation);
+
+      renderChart();
+      renderRecentDonations();
+    }
+
+    function renderChart() {
+      const chartEl = document.getElementById('weekChart');
+      const days = [];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        const key = d.toISOString().split('T')[0];
+        const label = d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 3);
+        const total = donations.filter(don => don.date.split('T')[0] === key).reduce((s, don) => s + don.amount, 0);
+        days.push({ label, total, isToday: i === 0 });
+      }
+      const maxVal = Math.max(...days.map(d => d.total), 1);
+
+      chartEl.innerHTML = days.map(d => {
+        const pct = Math.max((d.total / maxVal) * 100, 4);
+        return `
+          <div class="chart-col ${d.isToday ? 'chart-today' : ''}">
+            <div class="chart-bar" style="height:${pct}%">
+              <span class="chart-bar-value">${shortAmount(d.total)}</span>
+            </div>
+            <span class="chart-label">${d.label}</span>
+          </div>`;
+      }).join('');
+    }
+
+    function renderRecentDonations() {
+      const container = document.getElementById('recentList');
+      const recent = donations.slice(0, 5);
+      if (!recent.length) {
+        container.innerHTML = '<div class="history-empty" style="padding:1.5rem"><p style="font-size:0.8rem">No donations yet</p></div>';
+        return;
+      }
+      container.innerHTML = recent.map(d => `
+        <div class="recent-item">
+          <div class="recent-avatar" style="background:${getAvatarColor(d.name)}">${getInitials(d.name)}</div>
+          <div class="recent-info">
+            <div class="recent-name">${sanitize(d.name)}</div>
+            <div class="recent-date">${fmtDateShort.format(new Date(d.date))}</div>
+          </div>
+          <div class="recent-amount">${fmtCurrency.format(d.amount)}</div>
+        </div>
+      `).join('');
+    }
+
+    function quickDonate(amount) {
+      switchTab('add');
+      document.getElementById('amountInput').value = amount;
+      document.getElementById('amountInput').dispatchEvent(new Event('input'));
+      // Highlight preset
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.preset-chip').forEach(c => {
+        if (parseInt(c.textContent.replace(/[^\d]/g, '')) === amount) c.classList.add('active');
+      });
+      document.getElementById('nameInput').focus();
+    }
+
+    // ===== ADD DONATION =====
+    function initCategoryPills() {
+      const container = document.getElementById('categoryPills');
+      container.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => `
+        <button type="button" class="cat-pill ${key === selectedCategory ? 'active' : ''}"
+          data-cat="${key}" onclick="selectCategory('${key}')"
+          style="${key === selectedCategory ? `color:${cat.color}; background:${cat.bg}; border-color:${cat.color}` : ''}">
+          <span class="cat-dot" style="background:${cat.color}"></span>
+          ${cat.label}
+        </button>
+      `).join('');
+    }
+
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(p => {
+        const c = CATEGORIES[p.dataset.cat];
+        if (p.dataset.cat === cat) {
+          p.classList.add('active');
+          p.style.color = c.color;
+          p.style.background = c.bg;
+          p.style.borderColor = c.color;
+        } else {
+          p.classList.remove('active');
+          p.style.color = '';
+          p.style.background = '';
+          p.style.borderColor = 'transparent';
+        }
+      });
+    }
+
+    function setAmount(amount, btn) {
+      document.getElementById('amountInput').value = amount;
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    function toggleOptional() {
+      const el = document.getElementById('optionalFields');
+      const btn = document.getElementById('toggleMoreBtn');
+      const isOpen = btn.classList.toggle('open');
+      el.style.maxHeight = isOpen ? el.scrollHeight + 'px' : '0';
+    }
+
+    function validateForm() {
+      let valid = true;
+      const name = document.getElementById('nameInput').value.trim();
+      const amount = document.getElementById('amountInput').value;
+
+      // Name
+      const nameField = document.getElementById('nameField');
+      const nameError = document.getElementById('nameError');
+      if (!name || name.length < 2) {
+        nameField.classList.add('has-error');
+        nameError.textContent = name ? 'Name must be at least 2 characters' : 'Name is required';
+        valid = false;
+      } else {
+        nameField.classList.remove('has-error');
+        nameError.textContent = '';
+      }
+
+      // Amount
+      const amountField = document.getElementById('amountField');
+      const amountError = document.getElementById('amountError');
+      const amountNum = parseFloat(amount);
+      if (!amount || isNaN(amountNum) || amountNum < 1) {
+        amountField.classList.add('has-error');
+        amountError.textContent = 'Enter a valid amount (min ₹1)';
+        valid = false;
+      } else if (amountNum > 9999999) {
+        amountField.classList.add('has-error');
+        amountError.textContent = 'Amount cannot exceed ₹99,99,999';
+        valid = false;
+      } else {
+        amountField.classList.remove('has-error');
+        amountError.textContent = '';
+      }
+
+      return valid;
+    }
+
+    document.getElementById('donationForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!validateForm()) return;
+
+      const name = sanitize(document.getElementById('nameInput').value.trim());
+      const amount = Math.round(parseFloat(document.getElementById('amountInput').value));
+      const message = sanitize(document.getElementById('messageInput').value.trim());
+      const phone = sanitize(document.getElementById('phoneInput').value.trim());
+      const email = sanitize(document.getElementById('emailInput').value.trim());
+
+      if (editingId) {
+        // Update existing
+        const idx = donations.findIndex(d => d.id === editingId);
+        if (idx > -1) {
+          donations[idx] = { ...donations[idx], name, amount, message, phone, email, category: selectedCategory };
+          saveData();
+          showToast('Donation updated successfully!', 'success');
+          cancelEdit();
+          renderHome();
+          return;
+        }
+      }
+
+      // New donation
+      const newDonation = { id: uuid(), name, amount, message, date: new Date().toISOString(), category: selectedCategory, phone, email };
+      donations.unshift(newDonation);
+      saveData();
+      lastDonation = newDonation;
+      showSuccess(newDonation);
+      resetForm();
+    });
+
+    function resetForm() {
+      document.getElementById('donationForm').reset();
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.form-field').forEach(f => f.classList.remove('has-error'));
+      document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
+      selectedCategory = 'general';
+      initCategoryPills();
+      // Close optional fields
+      document.getElementById('optionalFields').style.maxHeight = '0';
+      document.getElementById('toggleMoreBtn').classList.remove('open');
+    }
+
+    function startEdit(id) {
+      const d = donations.find(x => x.id === id);
+      if (!d) return;
+      editingId = id;
+      switchTab('add');
+
+      document.getElementById('addTitle').textContent = 'Edit Donation';
+      document.getElementById('cancelEditBtn').style.display = 'block';
+      document.getElementById('submitBtn').textContent = 'Update Donation';
+      document.getElementById('submitBtn').classList.add('updating');
+
+      document.getElementById('nameInput').value = d.name;
+      document.getElementById('amountInput').value = d.amount;
+      document.getElementById('messageInput').value = d.message || '';
+      document.getElementById('phoneInput').value = d.phone || '';
+      document.getElementById('emailInput').value = d.email || '';
+      selectCategory(d.category || 'general');
+
+      if (d.phone || d.email) {
+        document.getElementById('optionalFields').style.maxHeight = '200px';
+        document.getElementById('toggleMoreBtn').classList.add('open');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+      editingId = null;
+      document.getElementById('addTitle').textContent = 'New Donation';
+      document.getElementById('cancelEditBtn').style.display = 'none';
+      document.getElementById('submitBtn').textContent = 'Process Donation';
+      document.getElementById('submitBtn').classList.remove('updating');
+      resetForm();
+    }
+
+    // ===== HISTORY =====
+    function initCategoryFilters() {
+      const container = document.getElementById('catFilters');
+      let html = '<button class="cat-filter-btn active" data-cat="all" onclick="setCatFilter(\'all\', this)">All</button>';
+      for (const [key, cat] of Object.entries(CATEGORIES)) {
+        html += `<button class="cat-filter-btn" data-cat="${key}" onclick="setCatFilter('${key}', this)">${cat.label}</button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function setTimeFilter(f, btn) {
+      currentTimeFilter = f;
+      document.querySelectorAll('#timeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHistory();
+    }
+
+    function setCatFilter(f, btn) {
+      currentCatFilter = f;
+      document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHistory();
+    }
+
+    function getFilteredDonations() {
+      let filtered = [...donations];
+      const now = new Date();
+
+      // Time filter
+      if (currentTimeFilter === 'month') {
+        filtered = filtered.filter(d => {
+          const dd = new Date(d.date);
+          return dd.getMonth() === now.getMonth() && dd.getFullYear() === now.getFullYear();
+        });
+      } else if (currentTimeFilter === 'week') {
+        const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+        filtered = filtered.filter(d => new Date(d.date) >= weekAgo);
+      }
+
+      // Category filter
+      if (currentCatFilter !== 'all') {
+        filtered = filtered.filter(d => d.category === currentCatFilter);
+      }
+
+      // Search
+      const term = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (term) {
+        filtered = filtered.filter(d => d.name.toLowerCase().includes(term));
+      }
+
+      // Sort
+      const sort = document.getElementById('sortSelect').value;
+      if (sort === 'newest') filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+      else if (sort === 'oldest') filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+      else if (sort === 'highest') filtered.sort((a, b) => b.amount - a.amount);
+      else if (sort === 'lowest') filtered.sort((a, b) => a.amount - b.amount);
+
+      return filtered;
+    }
+
+    function renderHistory() {
+      const filtered = getFilteredDonations();
+      const container = document.getElementById('donationList');
+      const empty = document.getElementById('historyEmpty');
+      const countEl = document.getElementById('historyCount');
+
+      if (!filtered.length) {
+        container.innerHTML = '';
+        empty.style.display = 'block';
+        countEl.textContent = '';
+        return;
+      }
+
+      empty.style.display = 'none';
+      const total = filtered.reduce((s, d) => s + d.amount, 0);
+      countEl.textContent = `${filtered.length} donation${filtered.length !== 1 ? 's' : ''} · ${fmtCurrency.format(total)}`;
+
+      container.innerHTML = filtered.map((d, i) => {
+        const cat = CATEGORIES[d.category] || CATEGORIES.general;
+        const msgHtml = d.message
+          ? `<div class="card-message">"${sanitize(d.message)}"</div>`
+          : '';
+
+        return `
+          <div class="donation-card" style="animation-delay:${i * 0.04}s">
+            <div class="card-top">
+              <div class="card-avatar" style="background:${getAvatarColor(d.name)}">${getInitials(d.name)}</div>
+              <div class="card-info">
+                <div class="card-name">${sanitize(d.name)}</div>
+                <div class="card-meta">
+                  <span class="card-date">${fmtDate.format(new Date(d.date))}</span>
+                  <span class="cat-tag" style="background:${cat.bg}; color:${cat.color}">${cat.label}</span>
+                </div>
+              </div>
+              <div class="card-amount">${fmtCurrency.format(d.amount)}</div>
+            </div>
+            ${msgHtml}
+            <div class="card-actions">
+              <button class="card-action-btn edit" onclick="startEdit('${d.id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>
+              <button class="card-action-btn delete" onclick="showDeleteModal('${d.id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                Delete
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderHistory);
+
+    // ===== SETTINGS =====
+    function loadSettings() {
+      const isDark = localStorage.getItem('dt_theme') === 'dark';
+      document.getElementById('darkModeToggle').checked = isDark;
+
+      const hasPin = !!localStorage.getItem('dt_pin');
+      document.getElementById('pinToggle').checked = hasPin;
+      document.getElementById('pinStatusText').textContent = hasPin ? 'Enabled' : 'Not set';
+    }
+
+    function toggleDarkMode() {
+      const isDark = document.getElementById('darkModeToggle').checked;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('dt_theme', isDark ? 'dark' : 'light');
+      document.querySelector('meta[name="theme-color"]').content = isDark ? '#0c1222' : '#10b981';
+    }
+
+    function exportCSV() {
+      if (!donations.length) { showToast('No data to export', 'error'); return; }
+      const headers = ['Name', 'Amount', 'Category', 'Message', 'Phone', 'Email', 'Date'];
+      const rows = donations.map(d => [
+        d.name, d.amount, (CATEGORIES[d.category] || CATEGORIES.general).label,
+        d.message || '', d.phone || '', d.email || '',
+        new Date(d.date).toLocaleString('en-IN')
+      ]);
+      const csv = [headers, ...rows].map(row =>
+        row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')
+      ).join('\n');
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'donations_' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('CSV exported successfully!', 'success');
+    }
+
+    function showClearModal() {
+      if (!donations.length) { showToast('No data to clear', 'info'); return; }
+      document.getElementById('clearModal').classList.add('show');
+    }
+
+    function clearAllData() {
+      donations = [];
+      saveData();
+      closeModal('clearModal');
+      showToast('All data cleared', 'success');
+      renderHome();
+    }
+
+    // ===== DELETE MODAL =====
+    function showDeleteModal(id) {
+      const d = donations.find(x => x.id === id);
+      if (!d) return;
+      deleteTargetId = id;
+      document.getElementById('deleteDonorName').textContent = d.name;
+      document.getElementById('deleteAmount').textContent = fmtCurrency.format(d.amount);
+      document.getElementById('deleteModal').classList.add('show');
+      document.getElementById('confirmDeleteBtn').onclick = () => confirmDelete();
+    }
+
+    function confirmDelete() {
+      donations = donations.filter(d => d.id !== deleteTargetId);
+      saveData();
+      closeModal('deleteModal');
+      showToast('Donation deleted', 'success');
+      renderHistory();
+      renderHome();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // ===== SUCCESS OVERLAY =====
+    function showSuccess(d) {
+      const cat = CATEGORIES[d.category] || CATEGORIES.general;
+      document.getElementById('receiptCard').innerHTML = `
+        <div class="receipt-header">
+          <svg viewBox="0 0 80 80"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><circle cx="40" cy="40" r="36" fill="url(#rg)"/><path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/></svg>
+          <span>DonateTrack</span>
+        </div>
+        <div class="receipt-row"><span class="receipt-label">Donor</span><span class="receipt-value">${sanitize(d.name)}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Category</span><span class="receipt-value"><span class="cat-tag" style="background:${cat.bg};color:${cat.color}">${cat.label}</span></span></div>
+        <div class="receipt-row"><span class="receipt-label">Date</span><span class="receipt-value">${fmtDate.format(new Date(d.date))}</span></div>
+        ${d.message ? `<div class="receipt-row"><span class="receipt-label">Message</span><span class="receipt-value" style="font-style:italic">"${sanitize(d.message)}"</span></div>` : ''}
+        <div class="receipt-amount">${fmtCurrency.format(d.amount)}</div>
+        <div class="receipt-ref">Ref: ${d.id}</div>
+      `;
+      document.getElementById('successOverlay').classList.add('show');
+      showConfetti();
+    }
+
+    function closeSuccess() {
+      document.getElementById('successOverlay').classList.remove('show');
+      document.getElementById('confettiContainer').innerHTML = '';
+      renderHome();
+    }
+
+    async function shareReceipt() {
+      if (!lastDonation) return;
+      const d = lastDonation;
+      const cat = (CATEGORIES[d.category] || CATEGORIES.general).label;
+      const text = `🎉 Donation Receipt — DonateTrack\n\nDonor: ${d.name}\nAmount: ${fmtCurrency.format(d.amount)}\nCategory: ${cat}\nDate: ${fmtDate.format(new Date(d.date))}\n${d.message ? 'Message: "' + d.message + '"\n' : ''}\nRef: ${d.id}`;
+
+      if (navigator.share) {
+        try { await navigator.share({ title: 'Donation Receipt', text }); } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('Receipt copied to clipboard!', 'success');
+        } catch {
+          showToast('Could not share receipt', 'error');
+        }
+      }
+    }
+
+    function showConfetti() {
+      const container = document.getElementById('confettiContainer');
+      const colors = ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#3b82f6', '#ef4444', '#34d399', '#a78bfa'];
+      for (let i = 0; i < 50; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 0.8 + 's';
+        piece.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+        piece.style.width = (Math.random() * 6 + 5) + 'px';
+        piece.style.height = (Math.random() * 6 + 5) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        container.appendChild(piece);
+      }
+    }
+
+    // ===== TOAST =====
+    function showToast(message, type = 'info') {
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span><span>${sanitize(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('out');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ===== PIN LOCK =====
+    function buildPinPad(containerId, onKey, onBackspace) {
+      const pad = document.getElementById(containerId);
+      pad.innerHTML = '';
+      for (let n = 1; n <= 9; n++) {
+        const btn = document.createElement('button');
+        btn.className = 'pin-key';
+        btn.textContent = n;
+        btn.onclick = () => onKey(String(n));
+        pad.appendChild(btn);
+      }
+      // Empty, 0, Backspace
+      const empty = document.createElement('button');
+      empty.className = 'pin-key empty';
+      pad.appendChild(empty);
+
+      const zero = document.createElement('button');
+      zero.className = 'pin-key';
+      zero.textContent = '0';
+      zero.onclick = () => onKey('0');
+      pad.appendChild(zero);
+
+      const back = document.createElement('button');
+      back.className = 'pin-key backspace';
+      back.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>';
+      back.onclick = onBackspace;
+      pad.appendChild(back);
+    }
+
+    function updatePinDots(containerId, length) {
+      const dots = document.getElementById(containerId).querySelectorAll('.pin-dot');
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('filled', i < length);
+        dot.classList.remove('error');
+      });
+    }
+
+    function showPinError(containerId) {
+      const dots = document.getElementById(containerId).querySelectorAll('.pin-dot');
+      const row = document.getElementById(containerId);
+      dots.forEach(d => { d.classList.add('error'); d.classList.remove('filled'); });
+      row.classList.add('pin-shake');
+      setTimeout(() => row.classList.remove('pin-shake'), 400);
+    }
+
+    // Lock screen
+    function initPinLockScreen() {
+      pinLockAttempt = '';
+      updatePinDots('pinLockDots', 0);
+      buildPinPad('pinLockPad',
+        (num) => {
+          if (pinLockAttempt.length >= 4) return;
+          pinLockAttempt += num;
+          updatePinDots('pinLockDots', pinLockAttempt.length);
+          if (pinLockAttempt.length === 4) {
+            setTimeout(() => {
+              const stored = localStorage.getItem('dt_pin');
+              if (btoa(pinLockAttempt) === stored) {
+                document.getElementById('pinLockScreen').classList.remove('show');
+                document.getElementById('mainApp').classList.add('show');
+                renderHome();
+              } else {
+                showPinError('pinLockDots');
+                pinLockAttempt = '';
+                setTimeout(() => updatePinDots('pinLockDots', 0), 400);
+              }
+            }, 200);
+          }
+        },
+        () => {
+          pinLockAttempt = pinLockAttempt.slice(0, -1);
+          updatePinDots('pinLockDots', pinLockAttempt.length);
+        }
+      );
+    }
+
+    // PIN setup
+    function handlePinToggle() {
+      const checked = document.getElementById('pinToggle').checked;
+      if (checked) {
+        openPinSetup();
+      } else {
+        // Remove PIN
+        localStorage.removeItem('dt_pin');
+        document.getElementById('pinStatusText').textContent = 'Not set';
+        showToast('PIN removed', 'success');
+      }
+    }
+
+    function openPinSetup() {
+      pinSetupStep = 0;
+      pinSetupValue = '';
+      pinSetupAttempt = '';
+      document.getElementById('pinSetupTitle').textContent = 'Set PIN';
+      document.getElementById('pinSetupText').textContent = 'Enter a 4-digit PIN';
+      updatePinDots('setupPinDots', 0);
+
+      buildPinPad('setupPinPad',
+        (num) => {
+          pinSetupAttempt += num;
+          updatePinDots('setupPinDots', pinSetupAttempt.length);
+          if (pinSetupAttempt.length === 4) {
+            setTimeout(() => {
+              if (pinSetupStep === 0) {
+                pinSetupValue = pinSetupAttempt;
+                pinSetupAttempt = '';
+                pinSetupStep = 1;
+                document.getElementById('pinSetupText').textContent = 'Confirm your PIN';
+                updatePinDots('setupPinDots', 0);
+              } else {
+                if (pinSetupAttempt === pinSetupValue) {
+                  localStorage.setItem('dt_pin', btoa(pinSetupValue));
+                  closePinSetup();
+                  document.getElementById('pinStatusText').textContent = 'Enabled';
+                  showToast('PIN set successfully!', 'success');
+                } else {
+                  showPinError('setupPinDots');
+                  pinSetupAttempt = '';
+                  document.getElementById('pinSetupText').textContent = 'PINs didn\'t match. Try again.';
+                  pinSetupStep = 0;
+                  pinSetupValue = '';
+                  setTimeout(() => {
+                    updatePinDots('setupPinDots', 0);
+                    document.getElementById('pinSetupText').textContent = 'Enter a 4-digit PIN';
+                  }, 800);
+                }
+              }
+            }, 200);
+          }
+        },
+        () => {
+          pinSetupAttempt = pinSetupAttempt.slice(0, -1);
+          updatePinDots('setupPinDots', pinSetupAttempt.length);
+        }
+      );
+
+      document.getElementById('pinSetupModal').classList.add('show');
+    }
+
+    function closePinSetup() {
+      document.getElementById('pinSetupModal').classList.remove('show');
+      // If PIN wasn't set, uncheck toggle
+      if (!localStorage.getItem('dt_pin')) {
+        document.getElementById('pinToggle').checked = false;
+        document.getElementById('pinStatusText').textContent = 'Not set';
+      }
+    }
+
+    // ===== SPLASH & INIT =====
+    function init() {
+      // Apply saved theme
+      const savedTheme = localStorage.getItem('dt_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      if (savedTheme === 'dark') {
+        document.querySelector('meta[name="theme-color"]').content = '#0c1222';
+      }
+
+      loadData();
+      initCategoryPills();
+      initCategoryFilters();
+
+      // Splash → PIN check → main app
+      setTimeout(() => {
+        document.getElementById('splashScreen').classList.add('hide');
+
+        setTimeout(() => {
+          const hasPin = localStorage.getItem('dt_pin');
+          if (hasPin) {
+            document.getElementById('pinLockScreen').classList.add('show');
+            initPinLockScreen();
+          } else {
+            document.getElementById('mainApp').classList.add('show');
+            renderHome();
+          }
+        }, 400);
+      }, 1800);
+    }
+
+    init();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>To-Do-List - Elite</title>
+  <!-- Google Fonts: Inter for an elite, clean look -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css" />
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <!-- Glass Header -->
+  <header class="navbar">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <i class="bi bi-clipboard-check-fill me-2" style="color: var(--primary); font-size: 1.5rem;"></i>
+      To-Do-List
+    </a>
+  </header>
+
+  <!-- Main Application Card -->
+  <div class="card">
+    <div class="d-flex align-items-center mb-4 justify-content-between">
+      <h4 class="mb-0 fw-bold" style="letter-spacing: -0.5px;">My List</h4>
+      <span class="badge bg-light text-dark border px-3 py-2 rounded-pill shadow-sm" id="task-counter"></span>
+    </div>
+
+    <div class="input-group mb-2">
+      <input id="todo-input" class="form-control" placeholder="What needs to be done?" aria-label="Add a new task" maxlength="500" autocomplete="off" />
+      <button id="add-btn" class="btn btn-primary" title="Add task"><i class="bi bi-plus-lg text-white"></i></button>
+    </div>
+
+    <div class="d-flex justify-content-end mb-4">
+      <small class="text-muted fw-medium" id="char-counter" style="font-size: 0.75rem;">0/500</small>
+    </div>
+
+    <ul id="todo-list" class="list-group list-group-flush p-0"></ul>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  (function () {
+    const STORAGE_KEY = 'todo_tasks_fixed_v1';
+    const addBtn = document.getElementById('add-btn');
+    const inputEl = document.getElementById('todo-input');
+    const listEl = document.getElementById('todo-list');
+    const counterEl = document.getElementById('task-counter');
+    const charCounterEl = document.getElementById('char-counter');
+    
+    let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    
+    function updateCharCounter() {
+      const length = inputEl.value.length;
+      charCounterEl.textContent = `${length}/500`;
+      if (length > 450) charCounterEl.style.color = '#ef4444'; // Red
+      else if (length > 350) charCounterEl.style.color = '#f59e0b'; // Amber
+      else charCounterEl.style.color = 'var(--text-muted)';
+    }
+    
+    function saveTasks() { 
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); 
+    }
+    
+    function makeId() { 
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); 
+    }
+    
+    function sortForRender(arr) {
+      return [...arr].sort((a,b) => a.done - b.done || (b.createdAt - a.createdAt)); // Newest first
+    }
+    
+    function render() {
+      listEl.innerHTML = '';
+      
+      if (!tasks.length) {
+        const empty = document.createElement('li');
+        empty.className = 'list-group-item emptyMsg fade-in';
+        empty.innerHTML = '✨ Your list is empty. Add a task above to begin.';
+        listEl.appendChild(empty);
+        updateCounter();
+        return;
+      }
+
+      const sorted = sortForRender(tasks);
+      sorted.forEach(task => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item fade-in';
+        li.dataset.id = task.id;
+
+        // Task Text Container
+        const textDiv = document.createElement('div');
+        textDiv.className = 'task-text';
+        
+        const textSpan = document.createElement('span');
+        textSpan.textContent = task.text;
+        if (task.done) textSpan.classList.add('done');
+        textDiv.appendChild(textSpan);
+
+        // Controls Container
+        const controls = document.createElement('div');
+        controls.className = 'btn-controls';
+
+        // Edit Button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-warning';
+        editBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+        editBtn.title = 'Edit task';
+        editBtn.addEventListener('click', () => startEdit(task, li, textDiv, editBtn));
+
+        // Done/Undo Button
+        const doneBtn = document.createElement('button');
+        doneBtn.className = task.done ? 'btn btn-outline-success' : 'btn btn-success';
+        
+        // Thumbs up icon
+        doneBtn.innerHTML = task.done ? '<i class="bi bi-arrow-counterclockwise"></i>' : '<i class="bi bi-hand-thumbs-up"></i>';
+        doneBtn.title = task.done ? 'Mark as pending' : 'Mark as done';
+        doneBtn.addEventListener('click', () => toggleDone(task.id));
+
+        // Delete Button
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-danger';
+        removeBtn.innerHTML = '<i class="bi bi-trash3"></i>';
+        removeBtn.title = 'Delete task';
+        removeBtn.addEventListener('click', () => removeTask(task.id));
+
+        controls.append(editBtn, doneBtn, removeBtn);
+        li.append(textDiv, controls);
+        listEl.appendChild(li);
+      });
+
+      updateCounter();
+    }
+
+    function updateCounter() {
+      const active = tasks.filter(t => !t.done).length;
+      const total = tasks.length;
+      counterEl.innerHTML = `<strong>${active}</strong> active • <strong>${total}</strong> total`;
+    }
+
+    function addTask(text) {
+      const trimmed = text.trim();
+      if (!trimmed) { inputEl.focus(); return; }
+      
+      const maxLength = 500;
+      const finalText = trimmed.length > maxLength ? trimmed.substring(0, maxLength) + '...' : trimmed;
+      
+      tasks.push({
+        id: makeId(), 
+        text: finalText, 
+        done: false, 
+        createdAt: Date.now()
+      });
+      
+      saveTasks(); 
+      render(); 
+      inputEl.value = '';
+      updateCharCounter();
+      inputEl.focus();
+    }
+
+    function toggleDone(id) {
+      const task = tasks.find(t => t.id === id);
+      if (task) { task.done = !task.done; saveTasks(); render(); }
+    }
+
+    function removeTask(id) {
+      if (confirm('Delete this task?')) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks(); 
+        render();
+      }
+    }
+
+    function startEdit(task, listItem, textDiv, editBtn) {
+      const existingInput = document.querySelector('.task-text input');
+      if (existingInput) { existingInput.blur(); return; }
+      
+      listItem.classList.add('editing-mode');
+      
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = task.text;
+      input.dataset.originalText = task.text;
+      input.maxLength = 500;
+      
+      textDiv.innerHTML = '';
+      textDiv.appendChild(input);
+      
+      setTimeout(() => { input.focus(); input.select(); }, 50);
+      
+      editBtn.className = 'btn btn-success';
+      editBtn.innerHTML = '<i class="bi bi-check-lg text-white"></i>';
+      editBtn.title = 'Save changes';
+      
+      function saveEdit() {
+        const newText = input.value.trim();
+        if (newText && newText !== task.text) {
+          const maxLength = 500;
+          task.text = newText.length > maxLength ? newText.substring(0, maxLength) + '...' : newText;
+          saveTasks();
+        }
+        render(); 
+      }
+      
+      function cancelEdit() { render(); }
+      
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); saveEdit(); }
+        else if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); }
+      });
+      
+      input.addEventListener('blur', saveEdit);
+      editBtn.onclick = saveEdit;
+    }
+
+    // Bindings
+    addBtn.addEventListener('click', () => addTask(inputEl.value));
+    inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(inputEl.value); });
+    inputEl.addEventListener('input', updateCharCounter);
+    
+    // Init
+    updateCharCounter();
+    render();
+  })();
+  </script>
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
