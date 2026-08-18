@@ -908,6 +908,63 @@
 
         <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
       </form>
+
+      <div class="login-divider">New here?</div>
+      <button class="login-btn" style="background:transparent; border:2px solid rgba(255,255,255,0.2); box-shadow:none; color:rgba(255,255,255,0.8);" onclick="showSignup()">Create Account</button>
+    </div>
+  </div>
+
+  <!-- ============ SIGNUP SCREEN ============ -->
+  <div id="signupScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg viewBox="0 0 80 80">
+          <defs><linearGradient id="sg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs>
+          <circle cx="40" cy="40" r="36" fill="url(#sg2)"/>
+          <path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/>
+        </svg>
+        <h2>DonateTrack</h2>
+        <p>Create Your Account</p>
+      </div>
+
+      <div id="signupError" class="login-error"></div>
+
+      <form id="signupForm" novalidate>
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" id="signupName" placeholder="Full Name *" autocomplete="name">
+        </div>
+
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <input type="tel" id="signupPhone" placeholder="Phone Number (10 digits) *" autocomplete="tel" maxlength="10">
+        </div>
+
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <input type="text" id="signupUserId" placeholder="Choose a User ID *" autocomplete="username">
+        </div>
+
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <input type="password" id="signupPassword" placeholder="Password (min 6 chars) *" autocomplete="new-password">
+        </div>
+
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <input type="password" id="signupConfirmPassword" placeholder="Confirm Password *" autocomplete="new-password">
+        </div>
+
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <input type="text" id="signupOrgName" placeholder="Organization Name *" autocomplete="organization">
+        </div>
+
+        <button type="submit" class="login-btn" id="signupBtn">Create Account</button>
+      </form>
+
+      <div class="login-divider">Already have an account?</div>
+      <button class="login-btn" style="background:transparent; border:2px solid rgba(255,255,255,0.2); box-shadow:none; color:rgba(255,255,255,0.8);" onclick="showLogin()">Back to Login</button>
     </div>
   </div>
 
@@ -1208,9 +1265,9 @@
        ======================================================================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc,
              onSnapshot, query, orderBy, serverTimestamp, writeBatch }
       from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
 
@@ -1350,9 +1407,72 @@
     if (collectorName) document.getElementById('loginCollector').value = collectorName;
     if (currentLocation) document.getElementById('loginLocation').value = currentLocation;
 
+    // ===== SIGNUP / LOGIN TOGGLE =====
+    window.showSignup = function() {
+      document.getElementById('loginScreen').classList.remove('show');
+      document.getElementById('signupScreen').classList.add('show');
+    };
+    window.showLogin = function() {
+      document.getElementById('signupScreen').classList.remove('show');
+      document.getElementById('loginScreen').classList.add('show');
+      document.getElementById('signupForm').reset();
+      document.getElementById('signupError').classList.remove('show');
+    };
+
+    // ===== SIGNUP =====
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('signupError');
+      const btn = document.getElementById('signupBtn');
+      const name = document.getElementById('signupName').value.trim();
+      const phone = document.getElementById('signupPhone').value.trim();
+      const userId = document.getElementById('signupUserId').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      const orgName = document.getElementById('signupOrgName').value.trim();
+
+      // Validations
+      if (!name) { errorEl.textContent = 'Full Name is required'; errorEl.classList.add('show'); return; }
+      if (!phone || !/^\d{10}$/.test(phone)) { errorEl.textContent = 'Phone must be exactly 10 digits'; errorEl.classList.add('show'); return; }
+      if (!userId || userId.length < 3) { errorEl.textContent = 'User ID must be at least 3 characters'; errorEl.classList.add('show'); return; }
+      if (userId.includes(' ')) { errorEl.textContent = 'User ID cannot contain spaces'; errorEl.classList.add('show'); return; }
+      if (!password || password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; errorEl.classList.add('show'); return; }
+      if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; errorEl.classList.add('show'); return; }
+      if (!orgName) { errorEl.textContent = 'Organization Name is required'; errorEl.classList.add('show'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Creating account...';
+      errorEl.classList.remove('show');
+
+      const email = userId + '@donatetrack.app';
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        // Store profile in Firestore
+        await setDoc(doc(db, 'organizations', cred.user.uid), {
+          name, phone, userId, orgName, email,
+          createdAt: serverTimestamp()
+        });
+        // Sign out so they go through the login flow with collector/location
+        await signOut(auth);
+        showLogin();
+        showToast('Account created! Please sign in.', 'success');
+      } catch (err) {
+        let msg = 'Signup failed. Please try again.';
+        if (err.code === 'auth/email-already-in-use') msg = 'This User ID is already taken.';
+        if (err.code === 'auth/weak-password') msg = 'Password is too weak (min 6 characters).';
+        if (err.code === 'auth/invalid-email') msg = 'Invalid User ID format.';
+        errorEl.textContent = msg;
+        errorEl.classList.add('show');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    });
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById('loginScreen').classList.remove('show');
+        document.getElementById('signupScreen').classList.remove('show');
         document.getElementById('mainApp').classList.add('show');
         startListening();
         checkMigration();
