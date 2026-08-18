@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -37,9 +38,9 @@
       --border: #e2e8f0;
       --divider: #f1f5f9;
 
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
       --shadow-primary: 0 4px 14px rgba(16, 185, 129, 0.35);
 
       --radius: 16px;
@@ -60,9 +61,9 @@
       --text-muted: #64748b;
       --border: #2d3f55;
       --divider: #243044;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
-      --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.4);
       --primary-light: #064e3b;
       --danger-light: #451a1a;
     }
@@ -98,104 +99,101 @@
     }
     .splash-overlay.hide { opacity: 0; visibility: hidden; pointer-events: none; }
 
-    .splash-logo {
-      width: 90px; height: 90px;
-      animation: splash-pulse 1.5s ease-in-out infinite alternate;
-    }
-    .splash-title {
-      font-size: 1.75rem; font-weight: 800; color: white;
-      margin-top: 1.25rem; letter-spacing: -0.5px;
-    }
-    .splash-subtitle {
-      font-size: 0.85rem; color: rgba(255,255,255,0.5);
-      margin-top: 0.5rem; font-weight: 400;
-    }
-    .splash-dots {
-      display: flex; gap: 6px; margin-top: 2rem;
-    }
+    .splash-logo { width: 90px; height: 90px; animation: splash-pulse 1.5s ease-in-out infinite alternate; }
+    .splash-title { font-size: 1.75rem; font-weight: 800; color: white; margin-top: 1.25rem; letter-spacing: -0.5px; }
+    .splash-subtitle { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 0.5rem; font-weight: 400; }
+    .splash-dots { display: flex; gap: 6px; margin-top: 2rem; }
     .splash-dots span {
       width: 8px; height: 8px; border-radius: 50%;
-      background: var(--primary);
-      animation: dot-pulse 1.2s ease-in-out infinite;
+      background: var(--primary); animation: dot-pulse 1.2s ease-in-out infinite;
     }
     .splash-dots span:nth-child(2) { animation-delay: 0.2s; }
     .splash-dots span:nth-child(3) { animation-delay: 0.4s; }
 
     /* ========================================
-       PIN LOCK SCREEN
+       LOGIN SCREEN
        ======================================== */
-    .pin-overlay {
+    .login-screen {
       position: fixed; inset: 0; z-index: 9998;
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       display: none; flex-direction: column;
       align-items: center; justify-content: center;
+      padding: 1.5rem;
     }
-    .pin-overlay.show { display: flex; }
+    .login-screen.show { display: flex; }
 
-    .pin-lock-icon {
-      width: 48px; height: 48px; color: var(--primary);
-      margin-bottom: 1.5rem;
+    .login-card {
+      width: 100%; max-width: 380px;
+      animation: slideUp 0.4s ease;
     }
-    .pin-heading {
-      font-size: 1.25rem; font-weight: 600; color: white;
-      margin-bottom: 0.5rem;
+    .login-logo { text-align: center; margin-bottom: 2rem; }
+    .login-logo svg { width: 72px; height: 72px; }
+    .login-logo h2 { color: white; font-size: 1.5rem; font-weight: 800; margin-top: 0.75rem; letter-spacing: -0.5px; }
+    .login-logo p { color: rgba(255,255,255,0.45); font-size: 0.8rem; margin-top: 0.35rem; }
+
+    .login-field {
+      position: relative; margin-bottom: 1rem;
     }
-    .pin-sub {
-      font-size: 0.8rem; color: rgba(255,255,255,0.4);
-      margin-bottom: 1.5rem; min-height: 1.2em;
+    .login-field input {
+      width: 100%; padding: 1rem 1rem 1rem 2.75rem;
+      border: 2px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm);
+      font-size: 0.95rem; font-family: inherit;
+      background: rgba(255,255,255,0.06); color: white;
+      transition: all 0.2s; outline: none;
     }
-    .pin-dots-row {
-      display: flex; gap: 14px; margin-bottom: 2rem;
-    }
-    .pin-dot {
-      width: 16px; height: 16px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.3);
-      transition: all 0.2s;
-    }
-    .pin-dot.filled {
-      background: var(--primary); border-color: var(--primary);
-      transform: scale(1.1);
-    }
-    .pin-dot.error {
-      background: var(--danger); border-color: var(--danger);
+    .login-field input::placeholder { color: rgba(255,255,255,0.35); }
+    .login-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
+    .login-field .login-icon {
+      position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; color: rgba(255,255,255,0.4);
     }
 
-    .pin-pad {
-      display: grid; grid-template-columns: repeat(3, 72px);
-      gap: 12px;
+    .login-btn {
+      width: 100%; padding: 1rem; border: none; border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; font-weight: 700; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: var(--shadow-primary); font-family: inherit;
+      margin-top: 0.5rem;
     }
-    .pin-key {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
-      color: white; font-size: 1.5rem; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .pin-key:hover { background: rgba(255,255,255,0.15); }
-    .pin-key:active { transform: scale(0.92); }
-    .pin-key.empty { visibility: hidden; }
-    .pin-key.backspace { font-size: 1.2rem; }
-    .pin-key.backspace svg { width: 24px; height: 24px; }
+    .login-btn:hover { transform: translateY(-1px); }
+    .login-btn:active { transform: translateY(0) scale(0.98); }
+    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-    .pin-shake {
-      animation: shake 0.4s ease;
+    .login-error {
+      background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: var(--radius-xs); padding: 0.75rem 1rem;
+      color: #fca5a5; font-size: 0.8rem; font-weight: 500;
+      margin-bottom: 1rem; display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .login-error.show { display: block; }
+
+    .login-divider {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin: 1.25rem 0; color: rgba(255,255,255,0.25); font-size: 0.75rem;
+    }
+    .login-divider::before, .login-divider::after {
+      content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+    }
+
+    .collector-section { margin-top: 0; }
+    .collector-section label {
+      display: block; color: rgba(255,255,255,0.5); font-size: 0.78rem;
+      font-weight: 600; margin-bottom: 0.4rem; text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     /* ========================================
        APP SHELL
        ======================================== */
-    #mainApp {
-      display: none;
-      min-height: 100vh;
-    }
+    #mainApp { display: none; min-height: 100vh; }
     #mainApp.show { display: block; }
 
     .screen {
-      display: none;
-      padding: 1.25rem;
+      display: none; padding: 1.25rem;
       padding-bottom: calc(var(--nav-h) + 2rem);
-      min-height: 100vh;
-      animation: fadeIn 0.3s ease;
+      min-height: 100vh; animation: fadeIn 0.3s ease;
     }
     .screen.active { display: block; }
 
@@ -203,9 +201,7 @@
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 1.5rem; padding-top: 0.5rem;
     }
-    .screen-header h1 {
-      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;
-    }
+    .screen-header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
     .screen-header .cancel-btn {
       background: none; border: none; color: var(--danger);
       font-weight: 600; font-size: 0.9rem; cursor: pointer;
@@ -219,13 +215,11 @@
        ======================================== */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0;
-      height: var(--nav-h);
-      background: var(--bg-nav);
+      height: var(--nav-h); background: var(--bg-nav);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
       display: flex; justify-content: space-around; align-items: center;
-      z-index: 100;
-      padding: 0 0.5rem;
+      z-index: 100; padding: 0 0.5rem;
       padding-bottom: env(safe-area-inset-bottom, 0px);
       transition: background var(--transition), border-color var(--transition);
     }
@@ -246,16 +240,12 @@
       background: var(--primary);
     }
 
-    /* Add FAB Button */
-    .nav-btn.fab-btn {
-      padding: 0; margin-top: -18px;
-    }
+    .nav-btn.fab-btn { padding: 0; margin-top: -18px; }
     .nav-fab {
       width: 52px; height: 52px; border-radius: 50%;
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       display: flex; align-items: center; justify-content: center;
-      box-shadow: var(--shadow-primary);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: var(--shadow-primary); transition: transform 0.2s, box-shadow 0.2s;
     }
     .nav-fab svg { width: 26px; height: 26px; color: white; }
     .nav-btn.fab-btn:active .nav-fab { transform: scale(0.9); }
@@ -268,6 +258,12 @@
     .greeting { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
     .greeting-emoji { font-size: 1.3rem; }
     .date-display { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+    .collector-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; color: var(--primary); font-weight: 600;
+      margin-top: 2px;
+    }
+    .collector-badge svg { width: 12px; height: 12px; }
 
     .total-card {
       background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
@@ -291,10 +287,7 @@
       box-shadow: var(--shadow-sm); border: 1px solid var(--border);
       transition: background var(--transition), border-color var(--transition);
     }
-    .stat-value {
-      font-size: 1.15rem; font-weight: 700; color: var(--text);
-      margin-bottom: 2px;
-    }
+    .stat-value { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
     .stat-label {
       font-size: 0.7rem; color: var(--text-muted); font-weight: 500;
       text-transform: uppercase; letter-spacing: 0.04em;
@@ -315,14 +308,12 @@
     }
     .chart-col {
       flex: 1; display: flex; flex-direction: column;
-      align-items: center; gap: 6px; height: 100%;
-      justify-content: flex-end;
+      align-items: center; gap: 6px; height: 100%; justify-content: flex-end;
     }
     .chart-bar {
       width: 100%; max-width: 36px; border-radius: 6px 6px 2px 2px;
       background: linear-gradient(180deg, var(--primary), var(--primary-dark));
-      min-height: 4px; transition: height 0.5s ease;
-      position: relative;
+      min-height: 4px; transition: height 0.5s ease; position: relative;
     }
     .chart-bar:hover { opacity: 0.85; }
     .chart-bar-value {
@@ -331,17 +322,12 @@
       white-space: nowrap; display: none;
     }
     .chart-col:hover .chart-bar-value { display: block; }
-    .chart-label {
-      font-size: 0.65rem; color: var(--text-muted); font-weight: 600;
-    }
-    .chart-today .chart-bar {
-      background: linear-gradient(180deg, var(--accent), #4f46e5);
-    }
+    .chart-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; }
+    .chart-today .chart-bar { background: linear-gradient(180deg, var(--accent), #4f46e5); }
 
     /* Recent Donations */
     .section-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 0.75rem;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;
     }
     .section-header h3 { font-size: 0.85rem; font-weight: 700; }
     .section-header button {
@@ -366,21 +352,23 @@
       font-size: 0.85rem; font-weight: 600;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .recent-meta {
+      display: flex; align-items: center; gap: 6px; margin-top: 1px;
+    }
     .recent-date { font-size: 0.7rem; color: var(--text-muted); }
+    .recent-location {
+      font-size: 0.62rem; font-weight: 600; color: var(--accent);
+      background: rgba(99,102,241,0.1); padding: 1px 6px; border-radius: 8px;
+    }
     .recent-amount {
-      font-weight: 700; color: var(--primary-dark); font-size: 0.9rem;
-      white-space: nowrap;
+      font-weight: 700; color: var(--primary-dark); font-size: 0.9rem; white-space: nowrap;
     }
     html[data-theme="dark"] .recent-amount { color: var(--primary); }
 
     /* Quick Donate */
-    .quick-donate {
-      margin-bottom: 1rem;
-    }
+    .quick-donate { margin-bottom: 1rem; }
     .quick-donate h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; }
-    .quick-amounts {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
-    }
+    .quick-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
     .quick-amt-btn {
       padding: 0.75rem 0.5rem; border-radius: var(--radius-xs);
       background: var(--bg-card); border: 2px solid var(--border);
@@ -388,18 +376,14 @@
       cursor: pointer; transition: all 0.2s;
     }
     .quick-amt-btn:hover {
-      border-color: var(--primary); color: var(--primary);
-      background: var(--primary-light);
+      border-color: var(--primary); color: var(--primary); background: var(--primary-light);
     }
     .quick-amt-btn:active { transform: scale(0.95); }
 
     /* ========================================
        ADD DONATION SCREEN
        ======================================== */
-    .amount-presets {
-      display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
+    .amount-presets { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .preset-chip {
       padding: 0.5rem 1rem; border-radius: 20px;
       background: var(--bg-card); border: 2px solid var(--border);
@@ -407,15 +391,12 @@
       cursor: pointer; transition: all 0.2s;
     }
     .preset-chip:hover, .preset-chip.active {
-      border-color: var(--primary); color: var(--primary);
-      background: var(--primary-light);
+      border-color: var(--primary); color: var(--primary); background: var(--primary-light);
     }
     .preset-chip:active { transform: scale(0.95); }
 
     /* Floating Label Fields */
-    .form-field {
-      position: relative; margin-bottom: 1.25rem;
-    }
+    .form-field { position: relative; margin-bottom: 1.25rem; }
     .form-field input,
     .form-field textarea {
       width: 100%; padding: 1.25rem 1rem 0.6rem;
@@ -428,32 +409,41 @@
     .form-field label {
       position: absolute; left: 1rem; top: 0.95rem;
       font-size: 0.9rem; color: var(--text-muted);
-      transition: all 0.2s ease; pointer-events: none;
-      background: transparent;
+      transition: all 0.2s ease; pointer-events: none; background: transparent;
     }
     .form-field input:focus,
     .form-field textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px var(--primary-glow);
+      border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow);
     }
     .form-field input:focus + label,
     .form-field input:not(:placeholder-shown) + label,
     .form-field textarea:focus + label,
     .form-field textarea:not(:placeholder-shown) + label {
-      top: 0.3rem; font-size: 0.7rem; font-weight: 600;
-      color: var(--primary);
+      top: 0.3rem; font-size: 0.7rem; font-weight: 600; color: var(--primary);
     }
     .field-error {
       font-size: 0.75rem; color: var(--danger); margin-top: 4px;
-      min-height: 0; overflow: hidden;
-      transition: all 0.2s;
+      min-height: 0; overflow: hidden; transition: all 0.2s;
     }
     .field-error:not(:empty) { min-height: 1rem; margin-top: 6px; }
-
     .form-field.has-error input,
-    .form-field.has-error textarea {
-      border-color: var(--danger);
+    .form-field.has-error textarea { border-color: var(--danger); }
+
+    /* Location autocomplete */
+    .autocomplete-list {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+      box-shadow: var(--shadow-md); max-height: 150px; overflow-y: auto;
+      display: none;
     }
+    .autocomplete-list.show { display: block; }
+    .autocomplete-item {
+      padding: 0.6rem 1rem; font-size: 0.85rem; cursor: pointer;
+      transition: background 0.1s; display: flex; align-items: center; gap: 6px;
+    }
+    .autocomplete-item:hover { background: var(--bg-hover); }
+    .autocomplete-item svg { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; }
 
     /* Category Pills */
     .category-select { margin-bottom: 1.25rem; }
@@ -461,23 +451,16 @@
       font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
       margin-bottom: 0.5rem; display: block;
     }
-    .category-pills {
-      display: flex; flex-wrap: wrap; gap: 0.4rem;
-    }
+    .category-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .cat-pill {
       padding: 0.45rem 0.85rem; border-radius: 20px;
       font-size: 0.78rem; font-weight: 600; cursor: pointer;
       border: 2px solid transparent; transition: all 0.2s;
       display: flex; align-items: center; gap: 5px;
-      background: var(--bg-hover);
-      color: var(--text-secondary);
+      background: var(--bg-hover); color: var(--text-secondary);
     }
-    .cat-pill .cat-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-    }
-    .cat-pill.active {
-      border-color: currentColor;
-    }
+    .cat-pill .cat-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .cat-pill.active { border-color: currentColor; }
 
     /* Optional Fields Toggle */
     .toggle-more {
@@ -486,28 +469,22 @@
       display: flex; align-items: center; gap: 6px;
       padding: 0.5rem 0; margin-bottom: 0.5rem;
     }
-    .toggle-more .chevron-icon {
-      transition: transform 0.3s; font-size: 0.65rem;
-    }
+    .toggle-more .chevron-icon { transition: transform 0.3s; font-size: 0.65rem; }
     .toggle-more.open .chevron-icon { transform: rotate(180deg); }
 
-    .optional-fields {
-      max-height: 0; overflow: hidden;
-      transition: max-height 0.35s ease;
-    }
+    .optional-fields { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
 
     /* Submit Button */
     .btn-donate {
-      width: 100%; padding: 1rem; border: none;
-      border-radius: var(--radius-sm);
+      width: 100%; padding: 1rem; border: none; border-radius: var(--radius-sm);
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: white; font-weight: 700; font-size: 1rem;
       cursor: pointer; transition: all 0.2s;
-      box-shadow: var(--shadow-primary);
-      font-family: inherit;
+      box-shadow: var(--shadow-primary); font-family: inherit;
     }
     .btn-donate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.45); }
     .btn-donate:active { transform: translateY(0) scale(0.98); }
+    .btn-donate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .btn-donate.updating {
       background: linear-gradient(135deg, var(--accent), #4f46e5);
       box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
@@ -518,9 +495,7 @@
        ======================================== */
     .history-filters { margin-bottom: 1rem; }
 
-    .time-filters {
-      display: flex; gap: 0.4rem; margin-bottom: 0.75rem;
-    }
+    .time-filters { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; }
     .filter-btn {
       padding: 0.45rem 0.9rem; border-radius: 20px;
       font-size: 0.78rem; font-weight: 600; cursor: pointer;
@@ -528,14 +503,12 @@
       color: var(--text-secondary); transition: all 0.2s;
     }
     .filter-btn.active {
-      background: var(--primary); color: white;
-      border-color: var(--primary);
+      background: var(--primary); color: white; border-color: var(--primary);
     }
 
     .cat-filters-row {
       display: flex; gap: 0.35rem; margin-bottom: 0.75rem;
-      overflow-x: auto; padding-bottom: 4px;
-      -webkit-overflow-scrolling: touch;
+      overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
     }
     .cat-filters-row::-webkit-scrollbar { height: 0; }
     .cat-filter-btn {
@@ -546,27 +519,20 @@
       flex-shrink: 0;
     }
     .cat-filter-btn.active {
-      background: var(--text); color: var(--bg-card);
-      border-color: var(--text);
+      background: var(--text); color: var(--bg-card); border-color: var(--text);
     }
 
-    .search-sort-row {
-      display: flex; gap: 0.5rem; margin-bottom: 0.75rem;
-    }
-    .search-bar {
-      flex: 1; position: relative;
-    }
+    .search-sort-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .search-bar { flex: 1; position: relative; }
     .search-bar svg {
-      position: absolute; left: 0.85rem; top: 50%;
-      transform: translateY(-50%); width: 16px; height: 16px;
-      color: var(--text-muted); pointer-events: none;
+      position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;
     }
     .search-bar input {
       width: 100%; padding: 0.65rem 0.85rem 0.65rem 2.5rem;
       border: 1px solid var(--border); border-radius: var(--radius-xs);
       font-size: 0.85rem; background: var(--bg-card); color: var(--text);
-      outline: none; transition: border-color 0.2s;
-      font-family: inherit;
+      outline: none; transition: border-color 0.2s; font-family: inherit;
     }
     .search-bar input:focus { border-color: var(--primary); }
 
@@ -574,24 +540,20 @@
       padding: 0.65rem 0.85rem; border: 1px solid var(--border);
       border-radius: var(--radius-xs); font-size: 0.8rem;
       background: var(--bg-card); color: var(--text);
-      font-family: inherit; cursor: pointer; outline: none;
-      min-width: 100px;
+      font-family: inherit; cursor: pointer; outline: none; min-width: 100px;
     }
 
     /* Donation Cards */
     .donation-card {
       background: var(--bg-card); border-radius: var(--radius-sm);
       padding: 1rem; margin-bottom: 0.6rem;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm);
       transition: all var(--transition);
       animation: cardSlideIn 0.35s ease backwards;
     }
     .donation-card:hover { box-shadow: var(--shadow-md); }
 
-    .card-top {
-      display: flex; align-items: center; gap: 0.75rem;
-    }
+    .card-top { display: flex; align-items: center; gap: 0.75rem; }
     .card-avatar {
       width: 42px; height: 42px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -603,14 +565,19 @@
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .card-meta {
-      display: flex; align-items: center; gap: 0.5rem; margin-top: 2px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 2px; flex-wrap: wrap;
     }
     .card-date { font-size: 0.72rem; color: var(--text-muted); }
     .cat-tag {
       font-size: 0.65rem; font-weight: 700; padding: 2px 8px;
       border-radius: 10px; text-transform: uppercase; letter-spacing: 0.03em;
     }
+    .location-tag {
+      font-size: 0.62rem; font-weight: 600; padding: 2px 7px;
+      border-radius: 8px; background: rgba(99,102,241,0.1); color: var(--accent);
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .location-tag svg { width: 10px; height: 10px; }
     .card-amount {
       font-weight: 800; font-size: 1.1rem; color: var(--primary-dark);
       white-space: nowrap; flex-shrink: 0;
@@ -622,6 +589,10 @@
       margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--divider);
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
       overflow: hidden; line-height: 1.4;
+    }
+    .card-collector {
+      font-size: 0.68rem; color: var(--text-muted); margin-top: 0.35rem;
+      font-style: italic;
     }
 
     .card-actions {
@@ -641,16 +612,11 @@
     .card-action-btn.edit:hover { color: var(--accent); }
     .card-action-btn.delete:hover { color: var(--danger); }
 
-    .history-empty {
-      text-align: center; padding: 3rem 1rem; color: var(--text-muted);
-    }
+    .history-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
     .history-empty-icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.5; }
     .history-empty p { font-size: 0.9rem; }
 
-    .history-count {
-      font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;
-      font-weight: 500;
-    }
+    .history-count { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; font-weight: 500; }
 
     /* ========================================
        SETTINGS SCREEN
@@ -662,37 +628,27 @@
     }
     .settings-item {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--divider);
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--divider);
     }
     .settings-item:last-child { border-bottom: none; }
     .settings-label { font-weight: 600; font-size: 0.9rem; }
     .settings-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
     /* Toggle Switch */
-    .toggle {
-      position: relative; width: 48px; height: 28px;
-      display: inline-block; flex-shrink: 0;
-    }
+    .toggle { position: relative; width: 48px; height: 28px; display: inline-block; flex-shrink: 0; }
     .toggle input { display: none; }
     .slider {
       position: absolute; inset: 0; cursor: pointer;
-      background: var(--border); border-radius: 28px;
-      transition: all 0.3s;
+      background: var(--border); border-radius: 28px; transition: all 0.3s;
     }
     .slider::before {
       content: ''; position: absolute;
       width: 22px; height: 22px; border-radius: 50%;
       background: white; left: 3px; top: 3px;
-      transition: transform 0.3s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .toggle input:checked + .slider {
-      background: var(--primary);
-    }
-    .toggle input:checked + .slider::before {
-      transform: translateX(20px);
-    }
+    .toggle input:checked + .slider { background: var(--primary); }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
 
     /* Settings Action Buttons */
     .settings-action {
@@ -706,11 +662,16 @@
     .settings-action:hover { background: var(--bg-hover); }
     .settings-action.danger { color: var(--danger); }
 
-    .app-info {
-      text-align: center; padding: 2rem 1rem; color: var(--text-muted);
-      font-size: 0.8rem;
-    }
+    .app-info { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.8rem; }
     .app-info p { margin-bottom: 0.25rem; }
+    .sync-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; color: var(--primary); font-weight: 600;
+    }
+    .sync-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--primary);
+      animation: dot-pulse 1.5s ease-in-out infinite;
+    }
 
     /* ========================================
        MODALS
@@ -720,40 +681,29 @@
       background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
       display: none; align-items: center; justify-content: center;
-      padding: 1.5rem;
-      animation: fadeIn 0.2s ease;
+      padding: 1.5rem; animation: fadeIn 0.2s ease;
     }
     .modal-overlay.show { display: flex; }
 
     .modal-card {
       background: var(--bg-card); border-radius: var(--radius);
       padding: 1.75rem; max-width: 380px; width: 100%;
-      box-shadow: var(--shadow-lg);
-      animation: slideUp 0.3s ease;
+      box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease;
     }
-    .modal-card h3 {
-      font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;
-    }
-    .modal-card p {
-      font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;
-      margin-bottom: 1.25rem;
-    }
-    .modal-actions {
-      display: flex; gap: 0.75rem; justify-content: flex-end;
-    }
+    .modal-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .modal-card p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem; }
+    .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
     .modal-btn {
       padding: 0.6rem 1.25rem; border-radius: var(--radius-xs);
       font-weight: 600; font-size: 0.85rem; cursor: pointer;
       border: none; transition: all 0.15s; font-family: inherit;
     }
-    .modal-btn.cancel {
-      background: var(--bg-hover); color: var(--text-secondary);
-    }
+    .modal-btn.cancel { background: var(--bg-hover); color: var(--text-secondary); }
     .modal-btn.cancel:hover { background: var(--border); }
-    .modal-btn.danger {
-      background: var(--danger); color: white;
-    }
+    .modal-btn.danger { background: var(--danger); color: white; }
     .modal-btn.danger:hover { background: #dc2626; }
+    .modal-btn.primary { background: var(--primary); color: white; }
+    .modal-btn.primary:hover { background: var(--primary-dark); }
 
     /* ========================================
        SUCCESS OVERLAY
@@ -767,10 +717,7 @@
     }
     .success-overlay.show { display: flex; }
 
-    .success-content {
-      text-align: center; max-width: 360px; width: 100%;
-      animation: slideUp 0.4s ease;
-    }
+    .success-content { text-align: center; max-width: 360px; width: 100%; animation: slideUp 0.4s ease; }
     .success-icon {
       width: 80px; height: 80px; border-radius: 50%;
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
@@ -779,15 +726,11 @@
     }
     .success-icon svg { width: 40px; height: 40px; color: white; }
 
-    .success-title {
-      font-size: 1.3rem; font-weight: 800; color: white;
-      margin-bottom: 1.25rem;
-    }
+    .success-title { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 1.25rem; }
 
     .receipt-card {
       background: var(--bg-card); border-radius: var(--radius-sm);
-      padding: 1.25rem; text-align: left;
-      margin-bottom: 1.25rem;
+      padding: 1.25rem; text-align: left; margin-bottom: 1.25rem;
       box-shadow: var(--shadow-lg);
     }
     .receipt-header {
@@ -798,26 +741,19 @@
     .receipt-header svg { width: 20px; height: 20px; color: var(--primary); }
     .receipt-header span { font-weight: 700; font-size: 0.9rem; color: var(--primary); }
     .receipt-row {
-      display: flex; justify-content: space-between;
-      padding: 0.35rem 0; font-size: 0.85rem;
+      display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.85rem;
     }
     .receipt-label { color: var(--text-muted); font-weight: 500; }
     .receipt-value { font-weight: 600; text-align: right; max-width: 60%; }
     .receipt-amount {
       font-size: 1.3rem; font-weight: 800; color: var(--primary-dark);
       text-align: center; padding: 0.75rem 0;
-      border-top: 2px dashed var(--divider);
-      margin-top: 0.5rem;
+      border-top: 2px dashed var(--divider); margin-top: 0.5rem;
     }
     html[data-theme="dark"] .receipt-amount { color: var(--primary); }
-    .receipt-ref {
-      text-align: center; font-size: 0.7rem; color: var(--text-muted);
-      margin-top: 0.5rem;
-    }
+    .receipt-ref { text-align: center; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; }
 
-    .success-actions {
-      display: flex; gap: 0.75rem; justify-content: center;
-    }
+    .success-actions { display: flex; gap: 0.75rem; justify-content: center; }
     .success-btn {
       padding: 0.7rem 1.5rem; border-radius: var(--radius-xs);
       font-weight: 600; font-size: 0.85rem; cursor: pointer;
@@ -828,51 +764,21 @@
       border: 1px solid rgba(255,255,255,0.25);
     }
     .success-btn.share:hover { background: rgba(255,255,255,0.25); }
-    .success-btn.done {
-      background: var(--primary); color: white;
-    }
+    .success-btn.done { background: var(--primary); color: white; }
     .success-btn.done:hover { background: var(--primary-dark); }
 
     /* Confetti */
-    .confetti-container {
-      position: fixed; inset: 0; pointer-events: none; z-index: 601;
-      overflow: hidden;
-    }
+    .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 601; overflow: hidden; }
     .confetti-piece {
       position: absolute; width: 8px; height: 8px;
-      border-radius: 2px; top: -10px;
-      animation: confetti-fall linear forwards;
-    }
-
-    /* ========================================
-       PIN SETUP MODAL
-       ======================================== */
-    .pin-setup-modal .modal-card {
-      text-align: center; max-width: 320px;
-    }
-    .pin-setup-modal .pin-dots-row {
-      justify-content: center; margin: 1rem 0;
-    }
-    .pin-setup-modal .pin-pad {
-      margin: 0 auto 1rem;
-    }
-    .pin-setup-modal .pin-key {
-      background: var(--bg-hover); color: var(--text);
-      border-color: var(--border);
-    }
-    .pin-setup-modal .pin-key:hover { background: var(--border); }
-    .pin-setup-cancel {
-      background: none; border: none; color: var(--text-muted);
-      font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;
-      font-family: inherit; font-size: 0.85rem;
+      border-radius: 2px; top: -10px; animation: confetti-fall linear forwards;
     }
 
     /* ========================================
        TOAST NOTIFICATIONS
        ======================================== */
     .toast-container {
-      position: fixed; top: 1rem; left: 50%;
-      transform: translateX(-50%); z-index: 9000;
+      position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 9000;
       display: flex; flex-direction: column; gap: 0.5rem;
       pointer-events: none; width: calc(100% - 2rem); max-width: 380px;
     }
@@ -892,17 +798,12 @@
     /* ========================================
        ANIMATIONS
        ======================================== */
-    @keyframes fadeIn {
-      from { opacity: 0; } to { opacity: 1; }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    @keyframes scaleIn {
-      0% { transform: scale(0); }
-      100% { transform: scale(1); }
-    }
+    @keyframes scaleIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
     @keyframes cardSlideIn {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
@@ -919,10 +820,7 @@
       0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
       100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
     }
-    @keyframes splash-pulse {
-      from { transform: scale(1); }
-      to { transform: scale(1.05); }
-    }
+    @keyframes splash-pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
     @keyframes dot-pulse {
       0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
       40% { opacity: 1; transform: scale(1); }
@@ -931,6 +829,13 @@
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-8px); }
       40%, 80% { transform: translateX(8px); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.6s linear infinite; display: inline-block; vertical-align: middle;
     }
 
     /* ========================================
@@ -962,17 +867,48 @@
     <div class="splash-dots"><span></span><span></span><span></span></div>
   </div>
 
-  <!-- ============ PIN LOCK SCREEN ============ -->
-  <div id="pinLockScreen" class="pin-overlay">
-    <svg class="pin-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-    </svg>
-    <div class="pin-heading">Enter PIN</div>
-    <div class="pin-sub" id="pinLockSub"></div>
-    <div class="pin-dots-row" id="pinLockDots">
-      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+  <!-- ============ LOGIN SCREEN ============ -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg viewBox="0 0 80 80">
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs>
+          <circle cx="40" cy="40" r="36" fill="url(#lg)"/>
+          <path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/>
+        </svg>
+        <h2>DonateTrack</h2>
+        <p>Organization Login</p>
+      </div>
+
+      <div id="loginError" class="login-error"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" id="loginUserId" placeholder="User ID" autocomplete="username">
+        </div>
+
+        <div class="login-field">
+          <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+        </div>
+
+        <div class="login-divider">Session Info</div>
+
+        <div class="collector-section">
+          <div class="login-field">
+            <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="loginCollector" placeholder="Your Name (Collector)" autocomplete="off">
+          </div>
+          <div class="login-field">
+            <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input type="text" id="loginLocation" placeholder="Your Location (Branch/City) *" autocomplete="off">
+          </div>
+        </div>
+
+        <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+      </form>
     </div>
-    <div class="pin-pad" id="pinLockPad"></div>
   </div>
 
   <!-- ============ MAIN APP ============ -->
@@ -983,6 +919,10 @@
       <div class="screen-header" style="flex-direction:column; align-items:flex-start; gap:2px;">
         <h1 class="greeting" id="greeting"></h1>
         <p class="date-display" id="dateDisplay"></p>
+        <div class="collector-badge" id="collectorBadge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="locationBadge"></span>
+        </div>
       </div>
 
       <div class="total-card">
@@ -1061,6 +1001,13 @@
           <div class="field-error" id="amountError"></div>
         </div>
 
+        <div class="form-field" id="locationField">
+          <input type="text" id="locationInput" placeholder=" " autocomplete="off">
+          <label for="locationInput">Location *</label>
+          <div class="field-error" id="locationError"></div>
+          <div class="autocomplete-list" id="locationAutocomplete"></div>
+        </div>
+
         <div class="category-select">
           <label>Category</label>
           <div class="category-pills" id="categoryPills"></div>
@@ -1093,9 +1040,7 @@
 
     <!-- ====== HISTORY SCREEN ====== -->
     <div id="screenHistory" class="screen">
-      <div class="screen-header">
-        <h1>History</h1>
-      </div>
+      <div class="screen-header"><h1>History</h1></div>
 
       <div class="history-filters">
         <div class="time-filters" id="timeFilters">
@@ -1130,9 +1075,7 @@
 
     <!-- ====== SETTINGS SCREEN ====== -->
     <div id="screenSettings" class="screen">
-      <div class="screen-header">
-        <h1>Settings</h1>
-      </div>
+      <div class="screen-header"><h1>Settings</h1></div>
 
       <div class="settings-group">
         <div class="settings-item">
@@ -1145,25 +1088,40 @@
             <span class="slider"></span>
           </label>
         </div>
+      </div>
+
+      <div class="settings-group">
         <div class="settings-item">
           <div>
-            <div class="settings-label">PIN Lock</div>
-            <div class="settings-desc" id="pinStatusText">Not set</div>
+            <div class="settings-label">Collector</div>
+            <div class="settings-desc" id="settingsCollector">—</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="pinToggle" onchange="handlePinToggle()">
-            <span class="slider"></span>
-          </label>
+          <div></div>
+        </div>
+        <div class="settings-item">
+          <div>
+            <div class="settings-label">Location</div>
+            <div class="settings-desc" id="settingsLocation">—</div>
+          </div>
+          <div></div>
+        </div>
+        <div class="settings-item">
+          <div>
+            <div class="settings-label">Sync Status</div>
+            <div class="settings-desc"><span class="sync-badge"><span class="dot"></span> Real-time sync active</span></div>
+          </div>
+          <div></div>
         </div>
       </div>
 
       <div class="settings-group">
         <button class="settings-action" onclick="exportCSV()">📊 Export Data as CSV</button>
-        <button class="settings-action danger" onclick="showClearModal()">🗑️ Clear All Data</button>
+        <button class="settings-action danger" onclick="signOutUser()">🚪 Sign Out</button>
       </div>
 
       <div class="app-info">
-        <p><strong>DonateTrack</strong> v1.0</p>
+        <p><strong>DonateTrack</strong> v2.0</p>
+        <p>☁️ Cloud Synced · Firebase</p>
         <p>Built with ❤️</p>
       </div>
     </div>
@@ -1211,28 +1169,15 @@
     </div>
   </div>
 
-  <!-- ============ CLEAR DATA MODAL ============ -->
-  <div id="clearModal" class="modal-overlay">
+  <!-- ============ MIGRATION MODAL ============ -->
+  <div id="migrationModal" class="modal-overlay">
     <div class="modal-card">
-      <h3>⚠️ Clear All Data</h3>
-      <p>This will permanently delete <strong>all</strong> donation records. This action cannot be undone.</p>
+      <h3>📦 Found Local Data</h3>
+      <p>You have <strong id="migrationCount">0</strong> donations saved locally. Would you like to upload them to the cloud so they sync across all devices?</p>
       <div class="modal-actions">
-        <button class="modal-btn cancel" onclick="closeModal('clearModal')">Cancel</button>
-        <button class="modal-btn danger" onclick="clearAllData()">Clear Everything</button>
+        <button class="modal-btn cancel" onclick="skipMigration()">Skip</button>
+        <button class="modal-btn primary" onclick="runMigration()">Upload to Cloud</button>
       </div>
-    </div>
-  </div>
-
-  <!-- ============ PIN SETUP MODAL ============ -->
-  <div id="pinSetupModal" class="modal-overlay pin-setup-modal">
-    <div class="modal-card">
-      <h3 id="pinSetupTitle">Set PIN</h3>
-      <div class="pin-dots-row" id="setupPinDots">
-        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-      </div>
-      <p id="pinSetupText" style="font-size:0.8rem; margin-bottom:0.75rem;">Enter a 4-digit PIN</p>
-      <div class="pin-pad" id="setupPinPad"></div>
-      <button class="pin-setup-cancel" onclick="closePinSetup()">Cancel</button>
     </div>
   </div>
 
@@ -1259,9 +1204,30 @@
 
 
   <!-- ========================================================================
-       JAVASCRIPT
+       FIREBASE SDK (ES MODULES VIA CDN)
        ======================================================================== -->
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+             onSnapshot, query, orderBy, serverTimestamp, writeBatch }
+      from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    // ===== FIREBASE CONFIG =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyAg0OTPJ3KvsjTnVWzDU4WOaZP8Xs63tNo",
+      authDomain: "donatetrack-2241b.firebaseapp.com",
+      projectId: "donatetrack-2241b",
+      storageBucket: "donatetrack-2241b.firebasestorage.app",
+      messagingSenderId: "613388624434",
+      appId: "1:613388624434:web:609dada1d1fcbb4cd0122b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
     // ===== CONSTANTS =====
     const CATEGORIES = {
       general:   { label: 'General',   color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
@@ -1287,18 +1253,12 @@
     let currentCatFilter = 'all';
     let lastDonation = null;
     let deleteTargetId = null;
-
-    // PIN state
-    let pinLockAttempt = '';
-    let pinSetupStep = 0; // 0 = enter, 1 = confirm
-    let pinSetupValue = '';
-    let pinSetupAttempt = '';
+    let unsubscribeSnapshot = null;
+    let allLocations = new Set();
+    let collectorName = localStorage.getItem('dt_collector') || '';
+    let currentLocation = localStorage.getItem('dt_location') || '';
 
     // ===== UTILITIES =====
-    function uuid() {
-      return 'DT-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
-    }
-
     function sanitize(str) {
       if (!str) return '';
       const div = document.createElement('div');
@@ -1330,32 +1290,157 @@
       return 'Good Evening';
     }
 
-    // ===== DATA LAYER =====
-    function loadData() {
+    function getDonationDate(d) {
+      if (d.createdAt && d.createdAt.toDate) return d.createdAt.toDate();
+      if (d.date) return new Date(d.date);
+      return new Date();
+    }
+
+    // ===== AUTH =====
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      const userId = document.getElementById('loginUserId').value.trim();
+      if (!userId) {
+        errorEl.textContent = 'User ID is required';
+        errorEl.classList.add('show');
+        return;
+      }
+      const email = userId.includes('@') ? userId : userId + '@donatetrack.app';
+      const password = document.getElementById('loginPassword').value;
+      const collector = document.getElementById('loginCollector').value.trim();
+      const location = document.getElementById('loginLocation').value.trim();
+
+      if (!location) {
+        errorEl.textContent = 'Location is required';
+        errorEl.classList.add('show');
+        return;
+      }
+      if (!collector) {
+        errorEl.textContent = 'Collector name is required';
+        errorEl.classList.add('show');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Signing in...';
+      errorEl.classList.remove('show');
+
       try {
-        const raw = JSON.parse(localStorage.getItem('donations')) || [];
-        donations = raw.map(d => ({
-          id: d.id || uuid(),
-          name: d.name || 'Unknown',
-          amount: Number(d.amount) || 0,
-          message: d.message || '',
-          date: d.date || new Date().toISOString(),
-          category: d.category || 'general',
-          phone: d.phone || '',
-          email: d.email || ''
-        }));
-        saveData();
-      } catch {
+        await signInWithEmailAndPassword(auth, email, password);
+        collectorName = collector;
+        currentLocation = location;
+        localStorage.setItem('dt_collector', collector);
+        localStorage.setItem('dt_location', location);
+      } catch (err) {
+        let msg = 'Invalid credentials. Please try again.';
+        if (err.code === 'auth/invalid-email') msg = 'Invalid User ID.';
+        if (err.code === 'auth/user-not-found') msg = 'No account found with this User ID.';
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Wrong password. Please try again.';
+        if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+        errorEl.textContent = msg;
+        errorEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    });
+
+    // Pre-fill saved collector/location
+    if (collectorName) document.getElementById('loginCollector').value = collectorName;
+    if (currentLocation) document.getElementById('loginLocation').value = currentLocation;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById('loginScreen').classList.remove('show');
+        document.getElementById('mainApp').classList.add('show');
+        startListening();
+        checkMigration();
+      } else {
+        document.getElementById('mainApp').classList.remove('show');
+        document.getElementById('loginScreen').classList.add('show');
+        if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
         donations = [];
       }
+    });
+
+    window.signOutUser = async function() {
+      if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+      await signOut(auth);
+      document.getElementById('loginBtn').disabled = false;
+      document.getElementById('loginBtn').textContent = 'Sign In';
+      showToast('Signed out successfully', 'success');
+    };
+
+    // ===== FIRESTORE REAL-TIME LISTENER =====
+    function startListening() {
+      const q = query(collection(db, 'donations'), orderBy('createdAt', 'desc'));
+      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        donations = snapshot.docs.map(docSnap => {
+          const data = docSnap.data();
+          allLocations.add(data.location || 'Unknown');
+          return { id: docSnap.id, ...data };
+        });
+        renderHome();
+        renderHistory();
+        // Pre-fill location from session
+        const locInput = document.getElementById('locationInput');
+        if (locInput && !locInput.value && currentLocation) {
+          locInput.value = currentLocation;
+        }
+      }, (error) => {
+        console.error('Firestore listener error:', error);
+        showToast('Connection error. Retrying...', 'error');
+      });
     }
 
-    function saveData() {
-      localStorage.setItem('donations', JSON.stringify(donations));
+    // ===== MIGRATION =====
+    function checkMigration() {
+      try {
+        const raw = JSON.parse(localStorage.getItem('donations'));
+        if (raw && raw.length > 0) {
+          document.getElementById('migrationCount').textContent = raw.length;
+          document.getElementById('migrationModal').classList.add('show');
+        }
+      } catch { }
     }
+
+    window.skipMigration = function() {
+      localStorage.removeItem('donations');
+      closeModal('migrationModal');
+    };
+
+    window.runMigration = async function() {
+      try {
+        const raw = JSON.parse(localStorage.getItem('donations')) || [];
+        const batch = writeBatch(db);
+        raw.forEach(d => {
+          const ref = doc(collection(db, 'donations'));
+          batch.set(ref, {
+            name: d.name || 'Unknown',
+            amount: Number(d.amount) || 0,
+            category: d.category || 'general',
+            location: 'Migrated',
+            collector: 'Migrated',
+            message: d.message || '',
+            phone: d.phone || '',
+            email: d.email || '',
+            createdAt: new Date(d.date || Date.now()),
+            updatedAt: new Date()
+          });
+        });
+        await batch.commit();
+        localStorage.removeItem('donations');
+        closeModal('migrationModal');
+        showToast(`${raw.length} donations uploaded to cloud!`, 'success');
+      } catch (err) {
+        console.error('Migration error:', err);
+        showToast('Migration failed. Try again.', 'error');
+      }
+    };
 
     // ===== NAVIGATION =====
-    function switchTab(tab) {
+    window.switchTab = function(tab) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -1363,34 +1448,31 @@
       if (tab === 'home') renderHome();
       if (tab === 'history') renderHistory();
       if (tab === 'settings') loadSettings();
-      if (tab === 'add' && !editingId) {
-        // Ensure clean form state when switching to add
-      }
       if (tab !== 'add' && editingId) cancelEdit();
-    }
+    };
 
     // ===== HOME SCREEN =====
     function renderHome() {
       const now = new Date();
-      document.getElementById('greeting').innerHTML = getGreeting() + ' <span class="greeting-emoji">👋</span>';
+      document.getElementById('greeting').innerHTML = `${getGreeting()}, ${sanitize(collectorName || 'Collector')} <span class="greeting-emoji">👋</span>`;
       document.getElementById('dateDisplay').textContent = fmtMonthYear.format(now);
+      document.getElementById('locationBadge').textContent = currentLocation || '—';
 
       const cm = now.getMonth(), cy = now.getFullYear();
       const monthDonations = donations.filter(d => {
-        const dd = new Date(d.date);
+        const dd = getDonationDate(d);
         return dd.getMonth() === cm && dd.getFullYear() === cy;
       });
-      const monthTotal = monthDonations.reduce((s, d) => s + d.amount, 0);
-      const allTotal = donations.reduce((s, d) => s + d.amount, 0);
+      const monthTotal = monthDonations.reduce((s, d) => s + (d.amount || 0), 0);
+      const allTotal = donations.reduce((s, d) => s + (d.amount || 0), 0);
 
       document.getElementById('monthLabel').textContent = now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
       document.getElementById('homeTotal').textContent = fmtCurrency.format(monthTotal);
       document.getElementById('homeAlltime').textContent = 'All time: ' + fmtCurrency.format(allTotal);
 
-      // Quick stats
       const donorCount = monthDonations.length;
       const avgDonation = donorCount ? Math.round(monthTotal / donorCount) : 0;
-      const highestDonation = donorCount ? Math.max(...monthDonations.map(d => d.amount)) : 0;
+      const highestDonation = donorCount ? Math.max(...monthDonations.map(d => d.amount || 0)) : 0;
       document.getElementById('statDonors').textContent = donorCount;
       document.getElementById('statAvg').textContent = shortAmount(avgDonation);
       document.getElementById('statHighest').textContent = shortAmount(highestDonation);
@@ -1407,7 +1489,10 @@
         const d = new Date(now); d.setDate(d.getDate() - i);
         const key = d.toISOString().split('T')[0];
         const label = d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 3);
-        const total = donations.filter(don => don.date.split('T')[0] === key).reduce((s, don) => s + don.amount, 0);
+        const total = donations.filter(don => {
+          const dd = getDonationDate(don);
+          return dd.toISOString().split('T')[0] === key;
+        }).reduce((s, don) => s + (don.amount || 0), 0);
         days.push({ label, total, isToday: i === 0 });
       }
       const maxVal = Math.max(...days.map(d => d.total), 1);
@@ -1431,29 +1516,32 @@
         container.innerHTML = '<div class="history-empty" style="padding:1.5rem"><p style="font-size:0.8rem">No donations yet</p></div>';
         return;
       }
-      container.innerHTML = recent.map(d => `
+      container.innerHTML = recent.map(d => {
+        const dd = getDonationDate(d);
+        return `
         <div class="recent-item">
           <div class="recent-avatar" style="background:${getAvatarColor(d.name)}">${getInitials(d.name)}</div>
           <div class="recent-info">
             <div class="recent-name">${sanitize(d.name)}</div>
-            <div class="recent-date">${fmtDateShort.format(new Date(d.date))}</div>
+            <div class="recent-meta">
+              <span class="recent-date">${fmtDateShort.format(dd)}</span>
+              ${d.location ? `<span class="recent-location">📍 ${sanitize(d.location)}</span>` : ''}
+            </div>
           </div>
           <div class="recent-amount">${fmtCurrency.format(d.amount)}</div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
-    function quickDonate(amount) {
+    window.quickDonate = function(amount) {
       switchTab('add');
       document.getElementById('amountInput').value = amount;
-      document.getElementById('amountInput').dispatchEvent(new Event('input'));
-      // Highlight preset
       document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
       document.querySelectorAll('.preset-chip').forEach(c => {
         if (parseInt(c.textContent.replace(/[^\d]/g, '')) === amount) c.classList.add('active');
       });
       document.getElementById('nameInput').focus();
-    }
+    };
 
     // ===== ADD DONATION =====
     function initCategoryPills() {
@@ -1468,55 +1556,71 @@
       `).join('');
     }
 
-    function selectCategory(cat) {
+    window.selectCategory = function(cat) {
       selectedCategory = cat;
       document.querySelectorAll('.cat-pill').forEach(p => {
         const c = CATEGORIES[p.dataset.cat];
         if (p.dataset.cat === cat) {
           p.classList.add('active');
-          p.style.color = c.color;
-          p.style.background = c.bg;
-          p.style.borderColor = c.color;
+          p.style.color = c.color; p.style.background = c.bg; p.style.borderColor = c.color;
         } else {
           p.classList.remove('active');
-          p.style.color = '';
-          p.style.background = '';
-          p.style.borderColor = 'transparent';
+          p.style.color = ''; p.style.background = ''; p.style.borderColor = 'transparent';
         }
       });
-    }
+    };
 
-    function setAmount(amount, btn) {
+    window.setAmount = function(amount, btn) {
       document.getElementById('amountInput').value = amount;
       document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
       if (btn) btn.classList.add('active');
-    }
+    };
 
-    function toggleOptional() {
+    window.toggleOptional = function() {
       const el = document.getElementById('optionalFields');
       const btn = document.getElementById('toggleMoreBtn');
       const isOpen = btn.classList.toggle('open');
       el.style.maxHeight = isOpen ? el.scrollHeight + 'px' : '0';
-    }
+    };
+
+    // Location autocomplete
+    document.getElementById('locationInput').addEventListener('input', function() {
+      const val = this.value.toLowerCase().trim();
+      const list = document.getElementById('locationAutocomplete');
+      if (!val) { list.classList.remove('show'); return; }
+      const matches = [...allLocations].filter(l => l.toLowerCase().includes(val) && l.toLowerCase() !== val);
+      if (matches.length === 0) { list.classList.remove('show'); return; }
+      list.innerHTML = matches.slice(0, 5).map(l => `
+        <div class="autocomplete-item" onclick="pickLocation('${sanitize(l)}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${sanitize(l)}
+        </div>`).join('');
+      list.classList.add('show');
+    });
+
+    document.getElementById('locationInput').addEventListener('blur', () => {
+      setTimeout(() => document.getElementById('locationAutocomplete').classList.remove('show'), 200);
+    });
+
+    window.pickLocation = function(loc) {
+      document.getElementById('locationInput').value = loc;
+      document.getElementById('locationAutocomplete').classList.remove('show');
+    };
 
     function validateForm() {
       let valid = true;
       const name = document.getElementById('nameInput').value.trim();
       const amount = document.getElementById('amountInput').value;
+      const location = document.getElementById('locationInput').value.trim();
 
-      // Name
       const nameField = document.getElementById('nameField');
       const nameError = document.getElementById('nameError');
       if (!name || name.length < 2) {
         nameField.classList.add('has-error');
         nameError.textContent = name ? 'Name must be at least 2 characters' : 'Name is required';
         valid = false;
-      } else {
-        nameField.classList.remove('has-error');
-        nameError.textContent = '';
-      }
+      } else { nameField.classList.remove('has-error'); nameError.textContent = ''; }
 
-      // Amount
       const amountField = document.getElementById('amountField');
       const amountError = document.getElementById('amountError');
       const amountNum = parseFloat(amount);
@@ -1528,44 +1632,61 @@
         amountField.classList.add('has-error');
         amountError.textContent = 'Amount cannot exceed ₹99,99,999';
         valid = false;
-      } else {
-        amountField.classList.remove('has-error');
-        amountError.textContent = '';
-      }
+      } else { amountField.classList.remove('has-error'); amountError.textContent = ''; }
+
+      const locationField = document.getElementById('locationField');
+      const locationError = document.getElementById('locationError');
+      if (!location || location.length < 2) {
+        locationField.classList.add('has-error');
+        locationError.textContent = location ? 'Location must be at least 2 characters' : 'Location is required';
+        valid = false;
+      } else { locationField.classList.remove('has-error'); locationError.textContent = ''; }
 
       return valid;
     }
 
-    document.getElementById('donationForm').addEventListener('submit', function(e) {
+    document.getElementById('donationForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       if (!validateForm()) return;
 
       const name = sanitize(document.getElementById('nameInput').value.trim());
       const amount = Math.round(parseFloat(document.getElementById('amountInput').value));
+      const location = sanitize(document.getElementById('locationInput').value.trim());
       const message = sanitize(document.getElementById('messageInput').value.trim());
       const phone = sanitize(document.getElementById('phoneInput').value.trim());
       const email = sanitize(document.getElementById('emailInput').value.trim());
 
-      if (editingId) {
-        // Update existing
-        const idx = donations.findIndex(d => d.id === editingId);
-        if (idx > -1) {
-          donations[idx] = { ...donations[idx], name, amount, message, phone, email, category: selectedCategory };
-          saveData();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+
+      try {
+        if (editingId) {
+          await updateDoc(doc(db, 'donations', editingId), {
+            name, amount, location, message, phone, email,
+            category: selectedCategory, updatedAt: serverTimestamp()
+          });
           showToast('Donation updated successfully!', 'success');
           cancelEdit();
-          renderHome();
-          return;
+        } else {
+          const newData = {
+            name, amount, location, message, phone, email,
+            category: selectedCategory,
+            collector: collectorName,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          await addDoc(collection(db, 'donations'), newData);
+          lastDonation = { ...newData, date: new Date().toISOString() };
+          showSuccess(lastDonation);
+          resetForm();
         }
+      } catch (err) {
+        console.error('Save error:', err);
+        showToast('Failed to save. Check your connection.', 'error');
       }
-
-      // New donation
-      const newDonation = { id: uuid(), name, amount, message, date: new Date().toISOString(), category: selectedCategory, phone, email };
-      donations.unshift(newDonation);
-      saveData();
-      lastDonation = newDonation;
-      showSuccess(newDonation);
-      resetForm();
+      btn.disabled = false;
+      btn.textContent = editingId ? 'Update Donation' : 'Process Donation';
     });
 
     function resetForm() {
@@ -1575,12 +1696,13 @@
       document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
       selectedCategory = 'general';
       initCategoryPills();
-      // Close optional fields
       document.getElementById('optionalFields').style.maxHeight = '0';
       document.getElementById('toggleMoreBtn').classList.remove('open');
+      // Re-fill location from session
+      document.getElementById('locationInput').value = currentLocation;
     }
 
-    function startEdit(id) {
+    window.startEdit = function(id) {
       const d = donations.find(x => x.id === id);
       if (!d) return;
       editingId = id;
@@ -1593,6 +1715,7 @@
 
       document.getElementById('nameInput').value = d.name;
       document.getElementById('amountInput').value = d.amount;
+      document.getElementById('locationInput').value = d.location || '';
       document.getElementById('messageInput').value = d.message || '';
       document.getElementById('phoneInput').value = d.phone || '';
       document.getElementById('emailInput').value = d.email || '';
@@ -1603,16 +1726,18 @@
         document.getElementById('toggleMoreBtn').classList.add('open');
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    };
 
-    function cancelEdit() {
+    window.cancelEdit = function() {
       editingId = null;
       document.getElementById('addTitle').textContent = 'New Donation';
       document.getElementById('cancelEditBtn').style.display = 'none';
       document.getElementById('submitBtn').textContent = 'Process Donation';
       document.getElementById('submitBtn').classList.remove('updating');
       resetForm();
-    }
+    };
+    // alias
+    function cancelEdit() { window.cancelEdit(); }
 
     // ===== HISTORY =====
     function initCategoryFilters() {
@@ -1624,50 +1749,50 @@
       container.innerHTML = html;
     }
 
-    function setTimeFilter(f, btn) {
+    window.setTimeFilter = function(f, btn) {
       currentTimeFilter = f;
       document.querySelectorAll('#timeFilters .filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderHistory();
-    }
+    };
 
-    function setCatFilter(f, btn) {
+    window.setCatFilter = function(f, btn) {
       currentCatFilter = f;
       document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderHistory();
-    }
+    };
 
     function getFilteredDonations() {
       let filtered = [...donations];
       const now = new Date();
 
-      // Time filter
       if (currentTimeFilter === 'month') {
         filtered = filtered.filter(d => {
-          const dd = new Date(d.date);
+          const dd = getDonationDate(d);
           return dd.getMonth() === now.getMonth() && dd.getFullYear() === now.getFullYear();
         });
       } else if (currentTimeFilter === 'week') {
         const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
-        filtered = filtered.filter(d => new Date(d.date) >= weekAgo);
+        filtered = filtered.filter(d => getDonationDate(d) >= weekAgo);
       }
 
-      // Category filter
       if (currentCatFilter !== 'all') {
         filtered = filtered.filter(d => d.category === currentCatFilter);
       }
 
-      // Search
       const term = document.getElementById('searchInput').value.toLowerCase().trim();
       if (term) {
-        filtered = filtered.filter(d => d.name.toLowerCase().includes(term));
+        filtered = filtered.filter(d =>
+          d.name.toLowerCase().includes(term) ||
+          (d.location || '').toLowerCase().includes(term) ||
+          (d.collector || '').toLowerCase().includes(term)
+        );
       }
 
-      // Sort
       const sort = document.getElementById('sortSelect').value;
-      if (sort === 'newest') filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-      else if (sort === 'oldest') filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+      if (sort === 'newest') filtered.sort((a, b) => getDonationDate(b) - getDonationDate(a));
+      else if (sort === 'oldest') filtered.sort((a, b) => getDonationDate(a) - getDonationDate(b));
       else if (sort === 'highest') filtered.sort((a, b) => b.amount - a.amount);
       else if (sort === 'lowest') filtered.sort((a, b) => a.amount - b.amount);
 
@@ -1688,14 +1813,15 @@
       }
 
       empty.style.display = 'none';
-      const total = filtered.reduce((s, d) => s + d.amount, 0);
+      const total = filtered.reduce((s, d) => s + (d.amount || 0), 0);
       countEl.textContent = `${filtered.length} donation${filtered.length !== 1 ? 's' : ''} · ${fmtCurrency.format(total)}`;
 
       container.innerHTML = filtered.map((d, i) => {
         const cat = CATEGORIES[d.category] || CATEGORIES.general;
-        const msgHtml = d.message
-          ? `<div class="card-message">"${sanitize(d.message)}"</div>`
-          : '';
+        const dd = getDonationDate(d);
+        const msgHtml = d.message ? `<div class="card-message">"${sanitize(d.message)}"</div>` : '';
+        const locHtml = d.location ? `<span class="location-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${sanitize(d.location)}</span>` : '';
+        const collectorHtml = d.collector ? `<div class="card-collector">Recorded by: ${sanitize(d.collector)}</div>` : '';
 
         return `
           <div class="donation-card" style="animation-delay:${i * 0.04}s">
@@ -1704,13 +1830,15 @@
               <div class="card-info">
                 <div class="card-name">${sanitize(d.name)}</div>
                 <div class="card-meta">
-                  <span class="card-date">${fmtDate.format(new Date(d.date))}</span>
+                  <span class="card-date">${fmtDate.format(dd)}</span>
                   <span class="cat-tag" style="background:${cat.bg}; color:${cat.color}">${cat.label}</span>
+                  ${locHtml}
                 </div>
               </div>
               <div class="card-amount">${fmtCurrency.format(d.amount)}</div>
             </div>
             ${msgHtml}
+            ${collectorHtml}
             <div class="card-actions">
               <button class="card-action-btn edit" onclick="startEdit('${d.id}')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1731,26 +1859,25 @@
     function loadSettings() {
       const isDark = localStorage.getItem('dt_theme') === 'dark';
       document.getElementById('darkModeToggle').checked = isDark;
-
-      const hasPin = !!localStorage.getItem('dt_pin');
-      document.getElementById('pinToggle').checked = hasPin;
-      document.getElementById('pinStatusText').textContent = hasPin ? 'Enabled' : 'Not set';
+      document.getElementById('settingsCollector').textContent = collectorName || '—';
+      document.getElementById('settingsLocation').textContent = currentLocation || '—';
     }
 
-    function toggleDarkMode() {
+    window.toggleDarkMode = function() {
       const isDark = document.getElementById('darkModeToggle').checked;
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
       localStorage.setItem('dt_theme', isDark ? 'dark' : 'light');
       document.querySelector('meta[name="theme-color"]').content = isDark ? '#0c1222' : '#10b981';
-    }
+    };
 
-    function exportCSV() {
+    window.exportCSV = function() {
       if (!donations.length) { showToast('No data to export', 'error'); return; }
-      const headers = ['Name', 'Amount', 'Category', 'Message', 'Phone', 'Email', 'Date'];
+      const headers = ['Name', 'Amount', 'Category', 'Location', 'Collector', 'Message', 'Phone', 'Email', 'Date'];
       const rows = donations.map(d => [
         d.name, d.amount, (CATEGORIES[d.category] || CATEGORIES.general).label,
+        d.location || '', d.collector || '',
         d.message || '', d.phone || '', d.email || '',
-        new Date(d.date).toLocaleString('en-IN')
+        getDonationDate(d).toLocaleString('en-IN')
       ]);
       const csv = [headers, ...rows].map(row =>
         row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')
@@ -1764,23 +1891,10 @@
       a.click();
       URL.revokeObjectURL(url);
       showToast('CSV exported successfully!', 'success');
-    }
+    };
 
-    function showClearModal() {
-      if (!donations.length) { showToast('No data to clear', 'info'); return; }
-      document.getElementById('clearModal').classList.add('show');
-    }
-
-    function clearAllData() {
-      donations = [];
-      saveData();
-      closeModal('clearModal');
-      showToast('All data cleared', 'success');
-      renderHome();
-    }
-
-    // ===== DELETE MODAL =====
-    function showDeleteModal(id) {
+    // ===== DELETE =====
+    window.showDeleteModal = function(id) {
       const d = donations.find(x => x.id === id);
       if (!d) return;
       deleteTargetId = id;
@@ -1788,24 +1902,27 @@
       document.getElementById('deleteAmount').textContent = fmtCurrency.format(d.amount);
       document.getElementById('deleteModal').classList.add('show');
       document.getElementById('confirmDeleteBtn').onclick = () => confirmDelete();
+    };
+
+    async function confirmDelete() {
+      try {
+        await deleteDoc(doc(db, 'donations', deleteTargetId));
+        closeModal('deleteModal');
+        showToast('Donation deleted', 'success');
+      } catch (err) {
+        showToast('Failed to delete. Try again.', 'error');
+      }
     }
 
-    function confirmDelete() {
-      donations = donations.filter(d => d.id !== deleteTargetId);
-      saveData();
-      closeModal('deleteModal');
-      showToast('Donation deleted', 'success');
-      renderHistory();
-      renderHome();
-    }
-
-    function closeModal(id) {
+    window.closeModal = function(id) {
       document.getElementById(id).classList.remove('show');
-    }
+    };
+    function closeModal(id) { window.closeModal(id); }
 
     // ===== SUCCESS OVERLAY =====
     function showSuccess(d) {
       const cat = CATEGORIES[d.category] || CATEGORIES.general;
+      const dd = d.date ? new Date(d.date) : new Date();
       document.getElementById('receiptCard').innerHTML = `
         <div class="receipt-header">
           <svg viewBox="0 0 80 80"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><circle cx="40" cy="40" r="36" fill="url(#rg)"/><path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/></svg>
@@ -1813,26 +1930,26 @@
         </div>
         <div class="receipt-row"><span class="receipt-label">Donor</span><span class="receipt-value">${sanitize(d.name)}</span></div>
         <div class="receipt-row"><span class="receipt-label">Category</span><span class="receipt-value"><span class="cat-tag" style="background:${cat.bg};color:${cat.color}">${cat.label}</span></span></div>
-        <div class="receipt-row"><span class="receipt-label">Date</span><span class="receipt-value">${fmtDate.format(new Date(d.date))}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Location</span><span class="receipt-value">📍 ${sanitize(d.location || '—')}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Collector</span><span class="receipt-value">${sanitize(d.collector || collectorName)}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Date</span><span class="receipt-value">${fmtDate.format(dd)}</span></div>
         ${d.message ? `<div class="receipt-row"><span class="receipt-label">Message</span><span class="receipt-value" style="font-style:italic">"${sanitize(d.message)}"</span></div>` : ''}
         <div class="receipt-amount">${fmtCurrency.format(d.amount)}</div>
-        <div class="receipt-ref">Ref: ${d.id}</div>
       `;
       document.getElementById('successOverlay').classList.add('show');
       showConfetti();
     }
 
-    function closeSuccess() {
+    window.closeSuccess = function() {
       document.getElementById('successOverlay').classList.remove('show');
       document.getElementById('confettiContainer').innerHTML = '';
-      renderHome();
-    }
+    };
 
-    async function shareReceipt() {
+    window.shareReceipt = async function() {
       if (!lastDonation) return;
       const d = lastDonation;
       const cat = (CATEGORIES[d.category] || CATEGORIES.general).label;
-      const text = `🎉 Donation Receipt — DonateTrack\n\nDonor: ${d.name}\nAmount: ${fmtCurrency.format(d.amount)}\nCategory: ${cat}\nDate: ${fmtDate.format(new Date(d.date))}\n${d.message ? 'Message: "' + d.message + '"\n' : ''}\nRef: ${d.id}`;
+      const text = `🎉 Donation Receipt — DonateTrack\n\nDonor: ${d.name}\nAmount: ${fmtCurrency.format(d.amount)}\nCategory: ${cat}\nLocation: ${d.location || '—'}\nCollector: ${d.collector || collectorName}\nDate: ${fmtDate.format(new Date(d.date || Date.now()))}\n${d.message ? 'Message: "' + d.message + '"\n' : ''}`;
 
       if (navigator.share) {
         try { await navigator.share({ title: 'Donation Receipt', text }); } catch {}
@@ -1844,7 +1961,7 @@
           showToast('Could not share receipt', 'error');
         }
       }
-    }
+    };
 
     function showConfetti() {
       const container = document.getElementById('confettiContainer');
@@ -1876,180 +1993,31 @@
         setTimeout(() => toast.remove(), 300);
       }, 3000);
     }
+    window.showToast = showToast;
 
-    // ===== PIN LOCK =====
-    function buildPinPad(containerId, onKey, onBackspace) {
-      const pad = document.getElementById(containerId);
-      pad.innerHTML = '';
-      for (let n = 1; n <= 9; n++) {
-        const btn = document.createElement('button');
-        btn.className = 'pin-key';
-        btn.textContent = n;
-        btn.onclick = () => onKey(String(n));
-        pad.appendChild(btn);
-      }
-      // Empty, 0, Backspace
-      const empty = document.createElement('button');
-      empty.className = 'pin-key empty';
-      pad.appendChild(empty);
-
-      const zero = document.createElement('button');
-      zero.className = 'pin-key';
-      zero.textContent = '0';
-      zero.onclick = () => onKey('0');
-      pad.appendChild(zero);
-
-      const back = document.createElement('button');
-      back.className = 'pin-key backspace';
-      back.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>';
-      back.onclick = onBackspace;
-      pad.appendChild(back);
-    }
-
-    function updatePinDots(containerId, length) {
-      const dots = document.getElementById(containerId).querySelectorAll('.pin-dot');
-      dots.forEach((dot, i) => {
-        dot.classList.toggle('filled', i < length);
-        dot.classList.remove('error');
-      });
-    }
-
-    function showPinError(containerId) {
-      const dots = document.getElementById(containerId).querySelectorAll('.pin-dot');
-      const row = document.getElementById(containerId);
-      dots.forEach(d => { d.classList.add('error'); d.classList.remove('filled'); });
-      row.classList.add('pin-shake');
-      setTimeout(() => row.classList.remove('pin-shake'), 400);
-    }
-
-    // Lock screen
-    function initPinLockScreen() {
-      pinLockAttempt = '';
-      updatePinDots('pinLockDots', 0);
-      buildPinPad('pinLockPad',
-        (num) => {
-          if (pinLockAttempt.length >= 4) return;
-          pinLockAttempt += num;
-          updatePinDots('pinLockDots', pinLockAttempt.length);
-          if (pinLockAttempt.length === 4) {
-            setTimeout(() => {
-              const stored = localStorage.getItem('dt_pin');
-              if (btoa(pinLockAttempt) === stored) {
-                document.getElementById('pinLockScreen').classList.remove('show');
-                document.getElementById('mainApp').classList.add('show');
-                renderHome();
-              } else {
-                showPinError('pinLockDots');
-                pinLockAttempt = '';
-                setTimeout(() => updatePinDots('pinLockDots', 0), 400);
-              }
-            }, 200);
-          }
-        },
-        () => {
-          pinLockAttempt = pinLockAttempt.slice(0, -1);
-          updatePinDots('pinLockDots', pinLockAttempt.length);
-        }
-      );
-    }
-
-    // PIN setup
-    function handlePinToggle() {
-      const checked = document.getElementById('pinToggle').checked;
-      if (checked) {
-        openPinSetup();
-      } else {
-        // Remove PIN
-        localStorage.removeItem('dt_pin');
-        document.getElementById('pinStatusText').textContent = 'Not set';
-        showToast('PIN removed', 'success');
-      }
-    }
-
-    function openPinSetup() {
-      pinSetupStep = 0;
-      pinSetupValue = '';
-      pinSetupAttempt = '';
-      document.getElementById('pinSetupTitle').textContent = 'Set PIN';
-      document.getElementById('pinSetupText').textContent = 'Enter a 4-digit PIN';
-      updatePinDots('setupPinDots', 0);
-
-      buildPinPad('setupPinPad',
-        (num) => {
-          pinSetupAttempt += num;
-          updatePinDots('setupPinDots', pinSetupAttempt.length);
-          if (pinSetupAttempt.length === 4) {
-            setTimeout(() => {
-              if (pinSetupStep === 0) {
-                pinSetupValue = pinSetupAttempt;
-                pinSetupAttempt = '';
-                pinSetupStep = 1;
-                document.getElementById('pinSetupText').textContent = 'Confirm your PIN';
-                updatePinDots('setupPinDots', 0);
-              } else {
-                if (pinSetupAttempt === pinSetupValue) {
-                  localStorage.setItem('dt_pin', btoa(pinSetupValue));
-                  closePinSetup();
-                  document.getElementById('pinStatusText').textContent = 'Enabled';
-                  showToast('PIN set successfully!', 'success');
-                } else {
-                  showPinError('setupPinDots');
-                  pinSetupAttempt = '';
-                  document.getElementById('pinSetupText').textContent = 'PINs didn\'t match. Try again.';
-                  pinSetupStep = 0;
-                  pinSetupValue = '';
-                  setTimeout(() => {
-                    updatePinDots('setupPinDots', 0);
-                    document.getElementById('pinSetupText').textContent = 'Enter a 4-digit PIN';
-                  }, 800);
-                }
-              }
-            }, 200);
-          }
-        },
-        () => {
-          pinSetupAttempt = pinSetupAttempt.slice(0, -1);
-          updatePinDots('setupPinDots', pinSetupAttempt.length);
-        }
-      );
-
-      document.getElementById('pinSetupModal').classList.add('show');
-    }
-
-    function closePinSetup() {
-      document.getElementById('pinSetupModal').classList.remove('show');
-      // If PIN wasn't set, uncheck toggle
-      if (!localStorage.getItem('dt_pin')) {
-        document.getElementById('pinToggle').checked = false;
-        document.getElementById('pinStatusText').textContent = 'Not set';
-      }
-    }
-
-    // ===== SPLASH & INIT =====
+    // ===== INIT =====
     function init() {
-      // Apply saved theme
       const savedTheme = localStorage.getItem('dt_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       if (savedTheme === 'dark') {
         document.querySelector('meta[name="theme-color"]').content = '#0c1222';
       }
 
-      loadData();
       initCategoryPills();
       initCategoryFilters();
 
-      // Splash → PIN check → main app
+      // Pre-fill location from session
+      if (currentLocation) {
+        document.getElementById('locationInput').value = currentLocation;
+      }
+
+      // Splash → Auth check
       setTimeout(() => {
         document.getElementById('splashScreen').classList.add('hide');
-
         setTimeout(() => {
-          const hasPin = localStorage.getItem('dt_pin');
-          if (hasPin) {
-            document.getElementById('pinLockScreen').classList.add('show');
-            initPinLockScreen();
-          } else {
-            document.getElementById('mainApp').classList.add('show');
-            renderHome();
+          // Auth state will handle showing login or main app
+          if (!auth.currentUser) {
+            document.getElementById('loginScreen').classList.add('show');
           }
         }, 400);
       }, 1800);
