@@ -276,13 +276,6 @@
       background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.25), transparent);
     }
 
-    .collector-section { margin-top: 0; }
-    .collector-section label {
-      display: block; color: rgba(255,255,255,0.5); font-size: 0.78rem;
-      font-weight: 600; margin-bottom: 0.4rem; text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
     .forgot-link {
       background: none; border: none; color: rgba(201, 168, 76, 0.6);
       font-size: 0.82rem; cursor: pointer; padding: 10px 0 0;
@@ -421,12 +414,6 @@
     .greeting { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
     .greeting-emoji { font-size: 1.3rem; }
     .date-display { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-    .collector-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 0.72rem; color: var(--primary); font-weight: 600;
-      margin-top: 2px;
-    }
-    .collector-badge svg { width: 12px; height: 12px; }
 
     .total-card {
       background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
@@ -591,22 +578,6 @@
     .field-error:not(:empty) { min-height: 1rem; margin-top: 6px; }
     .form-field.has-error input,
     .form-field.has-error textarea { border-color: var(--danger); }
-
-    /* Location autocomplete */
-    .autocomplete-list {
-      position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 0 0 var(--radius-xs) var(--radius-xs);
-      box-shadow: var(--shadow-md); max-height: 150px; overflow-y: auto;
-      display: none;
-    }
-    .autocomplete-list.show { display: block; }
-    .autocomplete-item {
-      padding: 0.6rem 1rem; font-size: 0.85rem; cursor: pointer;
-      transition: background 0.1s; display: flex; align-items: center; gap: 6px;
-    }
-    .autocomplete-item:hover { background: var(--bg-hover); }
-    .autocomplete-item svg { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; }
 
     /* Category Pills */
     .category-select { margin-bottom: 1.25rem; }
@@ -827,14 +798,6 @@
 
     .app-info { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.8rem; }
     .app-info p { margin-bottom: 0.25rem; }
-    .sync-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 0.72rem; color: var(--primary); font-weight: 600;
-    }
-    .sync-badge .dot {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--primary);
-      animation: dot-pulse 1.5s ease-in-out infinite;
-    }
 
     /* ========================================
        MODALS
@@ -914,7 +877,6 @@
       border-top: 2px dashed var(--divider); margin-top: 0.5rem;
     }
     html[data-theme="dark"] .receipt-amount { color: var(--primary); }
-    .receipt-ref { text-align: center; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; }
 
     .success-actions { display: flex; gap: 0.75rem; justify-content: center; }
     .success-btn {
@@ -1252,8 +1214,6 @@
           <div class="field-error" id="amountError"></div>
         </div>
 
-
-
         <div class="category-select">
           <label>Category</label>
           <div class="category-pills" id="categoryPills"></div>
@@ -1302,7 +1262,7 @@
             </svg>
             <input type="text" id="searchInput" placeholder="Search donors..." autocomplete="off">
           </div>
-          <select class="sort-select" id="sortSelect" onchange="renderHistory()">
+          <select class="sort-select" id="sortSelect">
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
             <option value="highest">Highest</option>
@@ -1470,7 +1430,6 @@
   <!-- ============ TOAST CONTAINER ============ -->
   <div class="toast-container" id="toastContainer"></div>
 
-
   <!-- ========================================================================
        BOOT WATCHDOG
        Deliberately NOT type="module". The Firebase block below is a module, so
@@ -1591,26 +1550,81 @@
     let lastDonation = null;
     let deleteTargetId = null;
     let unsubscribeSnapshot = null;
-    let allLocations = new Set();
+    let userProfile = null;
     let collectorName = localStorage.getItem('dt_collector') || '';
     let currentLocation = localStorage.getItem('dt_location') || '';
 
     // ===== UTILITIES =====
-    function sanitize(str) {
-      if (!str) return '';
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML.trim();
+    // Every id looked up here belongs to static markup that is never itself
+    // replaced (only its children are), so the lookup is safe to memoise.
+    const elCache = new Map();
+    function $(id) {
+      let el = elCache.get(id);
+      if (!el) { el = document.getElementById(id); if (el) elCache.set(id, el); }
+      return el;
     }
 
+    const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    function sanitize(str) {
+      if (!str) return '';
+      return String(str).trim().replace(/[&<>"']/g, c => ESCAPES[c]);
+    }
+
+    // Output is interpolated straight into HTML, so escape here rather than at
+    // each call site.
     function getInitials(name) {
-      return name.split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+      const initials = String(name || '').split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      return sanitize(initials) || '?';
     }
 
     function getAvatarColor(name) {
+      const str = String(name || '');
       let hash = 0;
-      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
       return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
+    // Local-calendar day key. Deliberately NOT toISOString(), which keys by UTC
+    // and buckets early-morning IST donations into the previous day.
+    function dayKey(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    // ===== SHARED UI HELPERS =====
+    function setBusy(btn, label) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>' + (label ? ' ' + label : '');
+    }
+    function setIdle(btn, label) {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+    function showMsg(el, text) {
+      el.textContent = text;
+      el.classList.add('show');
+    }
+    function hide(...els) {
+      els.forEach(el => el && el.classList.remove('show'));
+    }
+
+    // Firebase auth error codes share the same handful of causes across the
+    // login, signup and reset forms.
+    const AUTH_ERRORS = {
+      'auth/invalid-email': 'Invalid User ID.',
+      'auth/user-not-found': 'No account found with this User ID.',
+      'auth/wrong-password': 'Wrong password. Please try again.',
+      'auth/invalid-credential': 'Wrong password. Please try again.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/email-already-in-use': 'This User ID is already taken.',
+      'auth/weak-password': 'Password is too weak (min 6 characters).'
+    };
+    function authError(err, fallback) {
+      return AUTH_ERRORS[err && err.code] || fallback;
+    }
+
+    // User IDs double as emails on a private domain.
+    function toEmail(userId) {
+      return userId.includes('@') ? userId : userId + '@donatetrack.app';
     }
 
     function shortAmount(n) {
@@ -1634,162 +1648,104 @@
     }
 
     // ===== AUTH =====
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    $('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const errorEl = document.getElementById('loginError');
-      const btn = document.getElementById('loginBtn');
-      const userId = document.getElementById('loginUserId').value.trim();
-      if (!userId) {
-        errorEl.textContent = 'User ID is required';
-        errorEl.classList.add('show');
-        return;
-      }
-      const email = userId.includes('@') ? userId : userId + '@donatetrack.app';
-      const password = document.getElementById('loginPassword').value;
+      const errorEl = $('loginError');
+      const btn = $('loginBtn');
+      const userId = $('loginUserId').value.trim();
+      if (!userId) return showMsg(errorEl, 'User ID is required');
 
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Signing in...';
-      errorEl.classList.remove('show');
+      hide(errorEl);
+      setBusy(btn, 'Signing in...');
 
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        // Profile (name, location) loaded in onAuthStateChanged
+        // Profile (name, location) is loaded in onAuthStateChanged.
+        await signInWithEmailAndPassword(auth, toEmail(userId), $('loginPassword').value);
       } catch (err) {
-        let msg = 'Invalid credentials. Please try again.';
-        if (err.code === 'auth/invalid-email') msg = 'Invalid User ID.';
-        if (err.code === 'auth/user-not-found') msg = 'No account found with this User ID.';
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Wrong password. Please try again.';
-        if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
-        errorEl.textContent = msg;
-        errorEl.classList.add('show');
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
+        showMsg(errorEl, authError(err, 'Invalid credentials. Please try again.'));
+        setIdle(btn, 'Sign In');
       }
     });
 
     // ===== SIGNUP / LOGIN / FORGOT TOGGLE =====
-    window.showSignup = function() {
-      document.getElementById('loginScreen').classList.remove('show');
-      document.getElementById('forgotScreen').classList.remove('show');
-      document.getElementById('signupScreen').classList.add('show');
-    };
-    window.showLogin = function() {
-      document.getElementById('signupScreen').classList.remove('show');
-      document.getElementById('forgotScreen').classList.remove('show');
-      document.getElementById('loginScreen').classList.add('show');
-      document.getElementById('signupForm').reset();
-      document.getElementById('signupError').classList.remove('show');
-      document.getElementById('forgotForm')?.reset();
-      document.getElementById('forgotError')?.classList.remove('show');
-      document.getElementById('forgotSuccess')?.classList.remove('show');
-    };
-    window.showForgotPassword = function() {
-      document.getElementById('loginScreen').classList.remove('show');
-      document.getElementById('forgotScreen').classList.add('show');
-      document.getElementById('forgotError').classList.remove('show');
-      document.getElementById('forgotSuccess').classList.remove('show');
-      document.getElementById('forgotForm').reset();
-    };
+    const AUTH_SCREENS = ['loginScreen', 'signupScreen', 'forgotScreen'];
+    function showAuthScreen(id) {
+      AUTH_SCREENS.forEach(s => $(s).classList.toggle('show', s === id));
+      hide($('signupError'), $('forgotError'), $('forgotSuccess'));
+      $('signupForm').reset();
+      $('forgotForm').reset();
+    }
+    window.showSignup = () => showAuthScreen('signupScreen');
+    window.showLogin = () => showAuthScreen('loginScreen');
+    window.showForgotPassword = () => showAuthScreen('forgotScreen');
 
     // ===== FORGOT PASSWORD =====
-    document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+    $('forgotForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const errorEl = document.getElementById('forgotError');
-      const successEl = document.getElementById('forgotSuccess');
-      const btn = document.getElementById('forgotBtn');
-      const userId = document.getElementById('forgotUserId').value.trim();
-      const newPassword = document.getElementById('forgotNewPassword').value;
-      const confirmPassword = document.getElementById('forgotConfirmPassword').value;
+      const errorEl = $('forgotError');
+      const successEl = $('forgotSuccess');
+      const btn = $('forgotBtn');
+      const userId = $('forgotUserId').value.trim();
+      const newPassword = $('forgotNewPassword').value;
 
-      errorEl.classList.remove('show');
-      successEl.classList.remove('show');
+      hide(errorEl, successEl);
 
-      if (!userId) {
-        errorEl.textContent = 'Please enter your User ID';
-        errorEl.classList.add('show');
-        return;
-      }
-      if (!newPassword || newPassword.length < 6) {
-        errorEl.textContent = 'New password must be at least 6 characters';
-        errorEl.classList.add('show');
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        errorEl.textContent = 'Passwords do not match';
-        errorEl.classList.add('show');
-        return;
-      }
+      if (!userId) return showMsg(errorEl, 'Please enter your User ID');
+      if (!newPassword || newPassword.length < 6) return showMsg(errorEl, 'New password must be at least 6 characters');
+      if (newPassword !== $('forgotConfirmPassword').value) return showMsg(errorEl, 'Passwords do not match');
 
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Resetting...';
-
-      const email = userId.includes('@') ? userId : userId + '@donatetrack.app';
+      setBusy(btn, 'Resetting...');
 
       try {
-        await sendPasswordResetEmail(auth, email);
-        successEl.textContent = 'A password reset link has been sent. Please check the Firebase Console or your email action link to complete the reset. You can also contact your administrator.';
-        successEl.classList.add('show');
-        document.getElementById('forgotForm').reset();
+        await sendPasswordResetEmail(auth, toEmail(userId));
+        showMsg(successEl, 'A password reset link has been sent. Please check the Firebase Console or your email action link to complete the reset. You can also contact your administrator.');
+        $('forgotForm').reset();
       } catch (err) {
-        let msg = 'Failed to reset password. Please try again.';
-        if (err.code === 'auth/user-not-found') msg = 'No account found with this User ID.';
-        if (err.code === 'auth/invalid-email') msg = 'Invalid User ID.';
-        if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Please try again later.';
-        errorEl.textContent = msg;
-        errorEl.classList.add('show');
+        showMsg(errorEl, authError(err, 'Failed to reset password. Please try again.'));
       }
-      btn.disabled = false;
-      btn.textContent = 'Reset Password';
+      setIdle(btn, 'Reset Password');
     });
 
     // ===== SIGNUP =====
-    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    $('signupForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const errorEl = document.getElementById('signupError');
-      const btn = document.getElementById('signupBtn');
-      const name = document.getElementById('signupName').value.trim();
-      const userId = document.getElementById('signupUserId').value.trim();
-      const orgName = document.getElementById('signupOrgName').value.trim();
-      const location = document.getElementById('signupLocation').value.trim();
-      const password = document.getElementById('signupPassword').value;
-      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      const errorEl = $('signupError');
+      const btn = $('signupBtn');
+      const name = $('signupName').value.trim();
+      const userId = $('signupUserId').value.trim();
+      const orgName = $('signupOrgName').value.trim();
+      const location = $('signupLocation').value.trim();
+      const password = $('signupPassword').value;
 
-      // Validations
-      if (!name) { errorEl.textContent = 'Full Name is required'; errorEl.classList.add('show'); return; }
-      if (!userId || userId.length < 3) { errorEl.textContent = 'User ID must be at least 3 characters'; errorEl.classList.add('show'); return; }
-      if (userId.includes(' ')) { errorEl.textContent = 'User ID cannot contain spaces'; errorEl.classList.add('show'); return; }
-      if (!orgName) { errorEl.textContent = 'Organization Name is required'; errorEl.classList.add('show'); return; }
-      if (!location || location.length < 2) { errorEl.textContent = 'Location is required'; errorEl.classList.add('show'); return; }
-      if (!password || password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; errorEl.classList.add('show'); return; }
-      if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; errorEl.classList.add('show'); return; }
+      const problem =
+        !name ? 'Full Name is required' :
+        !userId || userId.length < 3 ? 'User ID must be at least 3 characters' :
+        userId.includes(' ') ? 'User ID cannot contain spaces' :
+        !orgName ? 'Organization Name is required' :
+        !location || location.length < 2 ? 'Location is required' :
+        !password || password.length < 6 ? 'Password must be at least 6 characters' :
+        password !== $('signupConfirmPassword').value ? 'Passwords do not match' : null;
+      if (problem) return showMsg(errorEl, problem);
 
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Creating account...';
-      errorEl.classList.remove('show');
+      hide(errorEl);
+      setBusy(btn, 'Creating account...');
 
       const email = userId + '@donatetrack.app';
 
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        // Store profile in Firestore
         await setDoc(doc(db, 'organizations', cred.user.uid), {
           name, userId, orgName, location, email,
           createdAt: serverTimestamp()
         });
-        // Sign out so they go through the login flow
+        // Sign out so they go through the login flow.
         await signOut(auth);
         showLogin();
         showToast('Account created! Please sign in.', 'success');
       } catch (err) {
-        let msg = 'Signup failed. Please try again.';
-        if (err.code === 'auth/email-already-in-use') msg = 'This User ID is already taken.';
-        if (err.code === 'auth/weak-password') msg = 'Password is too weak (min 6 characters).';
-        if (err.code === 'auth/invalid-email') msg = 'Invalid User ID format.';
-        errorEl.textContent = msg;
-        errorEl.classList.add('show');
+        showMsg(errorEl, authError(err, 'Signup failed. Please try again.'));
       }
-      btn.disabled = false;
-      btn.textContent = 'Create Account';
+      setIdle(btn, 'Create Account');
     });
 
     onAuthStateChanged(auth, async (user) => {
@@ -1806,15 +1762,15 @@
             localStorage.setItem('dt_location', currentLocation);
           }
         } catch (e) { console.error('Failed to load profile:', e); }
-        document.getElementById('loginScreen').classList.remove('show');
-        document.getElementById('signupScreen').classList.remove('show');
-        document.getElementById('forgotScreen').classList.remove('show');
-        document.getElementById('mainApp').classList.add('show');
+        $('loginScreen').classList.remove('show');
+        $('signupScreen').classList.remove('show');
+        $('forgotScreen').classList.remove('show');
+        $('mainApp').classList.add('show');
         startListening();
         checkMigration();
       } else {
-        document.getElementById('mainApp').classList.remove('show');
-        document.getElementById('loginScreen').classList.add('show');
+        $('mainApp').classList.remove('show');
+        $('loginScreen').classList.add('show');
         if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
         donations = [];
       }
@@ -1823,76 +1779,67 @@
     window.signOutUser = async function() {
       if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
       await signOut(auth);
-      document.getElementById('loginBtn').disabled = false;
-      document.getElementById('loginBtn').textContent = 'Sign In';
+      $('loginBtn').disabled = false;
+      $('loginBtn').textContent = 'Sign In';
       showToast('Signed out successfully', 'success');
     };
 
     // ===== PROFILE =====
-    let userProfile = null;
-
     window.showProfile = function() {
-      document.getElementById('screenSettings').classList.remove('active');
-      document.getElementById('screenProfile').classList.add('active');
-      document.getElementById('bottomNav').style.display = 'none';
+      $('screenSettings').classList.remove('active');
+      $('screenProfile').classList.add('active');
+      $('bottomNav').style.display = 'none';
       // Fill profile fields
       if (userProfile) {
-        document.getElementById('profileName').value = userProfile.name || '';
-        document.getElementById('profileUserId').value = userProfile.userId || '';
-        document.getElementById('profileOrgName').value = userProfile.orgName || '';
-        document.getElementById('profileLocation').value = userProfile.location || '';
-        document.getElementById('profileAvatar').textContent = (userProfile.name || 'U')[0].toUpperCase();
-        document.getElementById('profileDisplayName').textContent = userProfile.name || '—';
-        document.getElementById('profileDisplayOrg').textContent = userProfile.orgName || '—';
+        $('profileName').value = userProfile.name || '';
+        $('profileUserId').value = userProfile.userId || '';
+        $('profileOrgName').value = userProfile.orgName || '';
+        $('profileLocation').value = userProfile.location || '';
+        $('profileAvatar').textContent = (userProfile.name || 'U')[0].toUpperCase();
+        $('profileDisplayName').textContent = userProfile.name || '—';
+        $('profileDisplayOrg').textContent = userProfile.orgName || '—';
       }
     };
 
     window.hideProfile = function() {
-      document.getElementById('screenProfile').classList.remove('active');
-      document.getElementById('screenSettings').classList.add('active');
-      document.getElementById('bottomNav').style.display = '';
+      $('screenProfile').classList.remove('active');
+      $('screenSettings').classList.add('active');
+      $('bottomNav').style.display = '';
     };
 
     window.saveProfile = async function() {
-      const btn = document.getElementById('saveProfileBtn');
-      const name = document.getElementById('profileName').value.trim();
-      const location = document.getElementById('profileLocation').value.trim();
+      const btn = $('saveProfileBtn');
+      const name = $('profileName').value.trim();
+      const location = $('profileLocation').value.trim();
 
       if (!name) { showToast('Name cannot be empty', 'error'); return; }
 
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Saving...';
+      setBusy(btn, 'Saving...');
 
       try {
-        const user = auth.currentUser;
-        await updateDoc(doc(db, 'organizations', user.uid), { name, location });
+        await updateDoc(doc(db, 'organizations', auth.currentUser.uid), { name, location });
         collectorName = name;
         currentLocation = location;
         localStorage.setItem('dt_collector', name);
         localStorage.setItem('dt_location', location);
         userProfile.name = name;
         userProfile.location = location;
-        document.getElementById('profileAvatar').textContent = name[0].toUpperCase();
-        document.getElementById('profileDisplayName').textContent = name;
+        $('profileAvatar').textContent = name[0].toUpperCase();
+        $('profileDisplayName').textContent = name;
         renderHome();
         showToast('Profile updated!', 'success');
       } catch (err) {
         console.error('Profile update failed:', err);
         showToast('Failed to save changes', 'error');
       }
-      btn.disabled = false;
-      btn.textContent = 'Save Changes';
+      setIdle(btn, 'Save Changes');
     };
 
     // ===== FIRESTORE REAL-TIME LISTENER =====
     function startListening() {
       const q = query(collection(db, 'donations'), orderBy('createdAt', 'desc'));
       unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-        donations = snapshot.docs.map(docSnap => {
-          const data = docSnap.data();
-          allLocations.add(data.location || 'Unknown');
-          return { id: docSnap.id, ...data };
-        });
+        donations = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
         renderHome();
         renderHistory();
       }, (error) => {
@@ -1906,8 +1853,8 @@
       try {
         const raw = JSON.parse(localStorage.getItem('donations'));
         if (raw && raw.length > 0) {
-          document.getElementById('migrationCount').textContent = raw.length;
-          document.getElementById('migrationModal').classList.add('show');
+          $('migrationCount').textContent = raw.length;
+          $('migrationModal').classList.add('show');
         }
       } catch { }
     }
@@ -1949,7 +1896,7 @@
     // ===== NAVIGATION =====
     window.switchTab = function(tab) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('screen' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+      $('screen' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
 
       if (tab === 'home') renderHome();
@@ -1961,9 +1908,8 @@
     // ===== HOME SCREEN =====
     function renderHome() {
       const now = new Date();
-      document.getElementById('greeting').innerHTML = `${getGreeting()}, ${sanitize(collectorName || 'Collector')} <span class="greeting-emoji">👋</span>`;
-      document.getElementById('dateDisplay').textContent = fmtMonthYear.format(now);
-
+      $('greeting').innerHTML = `${getGreeting()}, ${sanitize(collectorName || 'Collector')} <span class="greeting-emoji">👋</span>`;
+      $('dateDisplay').textContent = fmtMonthYear.format(now);
 
       const cm = now.getMonth(), cy = now.getFullYear();
       const monthDonations = donations.filter(d => {
@@ -1973,34 +1919,40 @@
       const monthTotal = monthDonations.reduce((s, d) => s + (d.amount || 0), 0);
       const allTotal = donations.reduce((s, d) => s + (d.amount || 0), 0);
 
-      document.getElementById('monthLabel').textContent = now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-      document.getElementById('homeTotal').textContent = fmtCurrency.format(monthTotal);
-      document.getElementById('homeAlltime').textContent = 'All time: ' + fmtCurrency.format(allTotal);
+      $('monthLabel').textContent = fmtMonthYear.format(now);
+      $('homeTotal').textContent = fmtCurrency.format(monthTotal);
+      $('homeAlltime').textContent = 'All time: ' + fmtCurrency.format(allTotal);
 
       const donorCount = monthDonations.length;
       const avgDonation = donorCount ? Math.round(monthTotal / donorCount) : 0;
       const highestDonation = donorCount ? Math.max(...monthDonations.map(d => d.amount || 0)) : 0;
-      document.getElementById('statDonors').textContent = donorCount;
-      document.getElementById('statAvg').textContent = shortAmount(avgDonation);
-      document.getElementById('statHighest').textContent = shortAmount(highestDonation);
+      $('statDonors').textContent = donorCount;
+      $('statAvg').textContent = shortAmount(avgDonation);
+      $('statHighest').textContent = shortAmount(highestDonation);
 
       renderChart();
       renderRecentDonations();
     }
 
     function renderChart() {
-      const chartEl = document.getElementById('weekChart');
+      const chartEl = $('weekChart');
+      // Bucket every donation in one pass instead of re-scanning the whole list
+      // once per day, and key by local calendar date (see dayKey).
+      const totals = new Map();
+      for (const don of donations) {
+        const key = dayKey(getDonationDate(don));
+        totals.set(key, (totals.get(key) || 0) + (don.amount || 0));
+      }
+
       const days = [];
       const now = new Date();
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now); d.setDate(d.getDate() - i);
-        const key = d.toISOString().split('T')[0];
-        const label = d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 3);
-        const total = donations.filter(don => {
-          const dd = getDonationDate(don);
-          return dd.toISOString().split('T')[0] === key;
-        }).reduce((s, don) => s + (don.amount || 0), 0);
-        days.push({ label, total, isToday: i === 0 });
+        days.push({
+          label: d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 3),
+          total: totals.get(dayKey(d)) || 0,
+          isToday: i === 0
+        });
       }
       const maxVal = Math.max(...days.map(d => d.total), 1);
 
@@ -2017,7 +1969,7 @@
     }
 
     function renderRecentDonations() {
-      const container = document.getElementById('recentList');
+      const container = $('recentList');
       const recent = donations.slice(0, 5);
       if (!recent.length) {
         container.innerHTML = '<div class="history-empty" style="padding:1.5rem"><p style="font-size:0.8rem">No donations yet</p></div>';
@@ -2042,17 +1994,16 @@
 
     window.quickDonate = function(amount) {
       switchTab('add');
-      document.getElementById('amountInput').value = amount;
-      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      $('amountInput').value = amount;
       document.querySelectorAll('.preset-chip').forEach(c => {
-        if (parseInt(c.textContent.replace(/[^\d]/g, '')) === amount) c.classList.add('active');
+        c.classList.toggle('active', parseInt(c.textContent.replace(/[^\d]/g, ''), 10) === amount);
       });
-      document.getElementById('nameInput').focus();
+      $('nameInput').focus();
     };
 
     // ===== ADD DONATION =====
     function initCategoryPills() {
-      const container = document.getElementById('categoryPills');
+      const container = $('categoryPills');
       container.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => `
         <button type="button" class="cat-pill ${key === selectedCategory ? 'active' : ''}"
           data-cat="${key}" onclick="selectCategory('${key}')"
@@ -2078,35 +2029,33 @@
     };
 
     window.setAmount = function(amount, btn) {
-      document.getElementById('amountInput').value = amount;
+      $('amountInput').value = amount;
       document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
       if (btn) btn.classList.add('active');
     };
 
     window.toggleOptional = function() {
-      const el = document.getElementById('optionalFields');
-      const btn = document.getElementById('toggleMoreBtn');
+      const el = $('optionalFields');
+      const btn = $('toggleMoreBtn');
       const isOpen = btn.classList.toggle('open');
       el.style.maxHeight = isOpen ? el.scrollHeight + 'px' : '0';
     };
 
-
-
     function validateForm() {
       let valid = true;
-      const name = document.getElementById('nameInput').value.trim();
-      const amount = document.getElementById('amountInput').value;
+      const name = $('nameInput').value.trim();
+      const amount = $('amountInput').value;
 
-      const nameField = document.getElementById('nameField');
-      const nameError = document.getElementById('nameError');
+      const nameField = $('nameField');
+      const nameError = $('nameError');
       if (!name || name.length < 2) {
         nameField.classList.add('has-error');
         nameError.textContent = name ? 'Name must be at least 2 characters' : 'Name is required';
         valid = false;
       } else { nameField.classList.remove('has-error'); nameError.textContent = ''; }
 
-      const amountField = document.getElementById('amountField');
-      const amountError = document.getElementById('amountError');
+      const amountField = $('amountField');
+      const amountError = $('amountError');
       const amountNum = parseFloat(amount);
       if (!amount || isNaN(amountNum) || amountNum < 1) {
         amountField.classList.add('has-error');
@@ -2118,25 +2067,22 @@
         valid = false;
       } else { amountField.classList.remove('has-error'); amountError.textContent = ''; }
 
-
-
       return valid;
     }
 
-    document.getElementById('donationForm').addEventListener('submit', async function(e) {
+    $('donationForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       if (!validateForm()) return;
 
-      const name = sanitize(document.getElementById('nameInput').value.trim());
-      const amount = Math.round(parseFloat(document.getElementById('amountInput').value));
+      const name = sanitize($('nameInput').value.trim());
+      const amount = Math.round(parseFloat($('amountInput').value));
       const location = currentLocation || '';
-      const message = sanitize(document.getElementById('messageInput').value.trim());
-      const phone = sanitize(document.getElementById('phoneInput').value.trim());
-      const email = sanitize(document.getElementById('emailInput').value.trim());
+      const message = sanitize($('messageInput').value.trim());
+      const phone = sanitize($('phoneInput').value.trim());
+      const email = sanitize($('emailInput').value.trim());
 
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>';
+      const btn = $('submitBtn');
+      setBusy(btn);
 
       try {
         if (editingId) {
@@ -2163,19 +2109,18 @@
         console.error('Save error:', err);
         showToast('Failed to save. Check your connection.', 'error');
       }
-      btn.disabled = false;
-      btn.textContent = editingId ? 'Update Donation' : 'Process Donation';
+      setIdle(btn, editingId ? 'Update Donation' : 'Process Donation');
     });
 
     function resetForm() {
-      document.getElementById('donationForm').reset();
+      $('donationForm').reset();
       document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
       document.querySelectorAll('.form-field').forEach(f => f.classList.remove('has-error'));
       document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
       selectedCategory = 'general';
       initCategoryPills();
-      document.getElementById('optionalFields').style.maxHeight = '0';
-      document.getElementById('toggleMoreBtn').classList.remove('open');
+      $('optionalFields').style.maxHeight = '0';
+      $('toggleMoreBtn').classList.remove('open');
 
     }
 
@@ -2185,40 +2130,39 @@
       editingId = id;
       switchTab('add');
 
-      document.getElementById('addTitle').textContent = 'Edit Donation';
-      document.getElementById('cancelEditBtn').style.display = 'block';
-      document.getElementById('submitBtn').textContent = 'Update Donation';
-      document.getElementById('submitBtn').classList.add('updating');
+      $('addTitle').textContent = 'Edit Donation';
+      $('cancelEditBtn').style.display = 'block';
+      $('submitBtn').textContent = 'Update Donation';
+      $('submitBtn').classList.add('updating');
 
-      document.getElementById('nameInput').value = d.name;
-      document.getElementById('amountInput').value = d.amount;
+      $('nameInput').value = d.name;
+      $('amountInput').value = d.amount;
 
-      document.getElementById('messageInput').value = d.message || '';
-      document.getElementById('phoneInput').value = d.phone || '';
-      document.getElementById('emailInput').value = d.email || '';
+      $('messageInput').value = d.message || '';
+      $('phoneInput').value = d.phone || '';
+      $('emailInput').value = d.email || '';
       selectCategory(d.category || 'general');
 
       if (d.phone || d.email) {
-        document.getElementById('optionalFields').style.maxHeight = '200px';
-        document.getElementById('toggleMoreBtn').classList.add('open');
+        $('optionalFields').style.maxHeight = '200px';
+        $('toggleMoreBtn').classList.add('open');
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    window.cancelEdit = function() {
+    function cancelEdit() {
       editingId = null;
-      document.getElementById('addTitle').textContent = 'New Donation';
-      document.getElementById('cancelEditBtn').style.display = 'none';
-      document.getElementById('submitBtn').textContent = 'Process Donation';
-      document.getElementById('submitBtn').classList.remove('updating');
+      $('addTitle').textContent = 'New Donation';
+      $('cancelEditBtn').style.display = 'none';
+      $('submitBtn').textContent = 'Process Donation';
+      $('submitBtn').classList.remove('updating');
       resetForm();
-    };
-    // alias
-    function cancelEdit() { window.cancelEdit(); }
+    }
+    window.cancelEdit = cancelEdit;
 
     // ===== HISTORY =====
     function initCategoryFilters() {
-      const container = document.getElementById('catFilters');
+      const container = $('catFilters');
       let html = '<button class="cat-filter-btn active" data-cat="all" onclick="setCatFilter(\'all\', this)">All</button>';
       for (const [key, cat] of Object.entries(CATEGORIES)) {
         html += `<button class="cat-filter-btn" data-cat="${key}" onclick="setCatFilter('${key}', this)">${cat.label}</button>`;
@@ -2258,7 +2202,7 @@
         filtered = filtered.filter(d => d.category === currentCatFilter);
       }
 
-      const term = document.getElementById('searchInput').value.toLowerCase().trim();
+      const term = $('searchInput').value.toLowerCase().trim();
       if (term) {
         filtered = filtered.filter(d =>
           d.name.toLowerCase().includes(term) ||
@@ -2267,9 +2211,14 @@
         );
       }
 
-      const sort = document.getElementById('sortSelect').value;
-      if (sort === 'newest') filtered.sort((a, b) => getDonationDate(b) - getDonationDate(a));
-      else if (sort === 'oldest') filtered.sort((a, b) => getDonationDate(a) - getDonationDate(b));
+      const sort = $('sortSelect').value;
+      if (sort === 'newest' || sort === 'oldest') {
+        // Resolve each date once; the old comparator rebuilt two Date objects
+        // on every comparison.
+        const times = new Map(filtered.map(d => [d, getDonationDate(d).getTime()]));
+        const dir = sort === 'newest' ? -1 : 1;
+        filtered.sort((a, b) => (times.get(a) - times.get(b)) * dir);
+      }
       else if (sort === 'highest') filtered.sort((a, b) => b.amount - a.amount);
       else if (sort === 'lowest') filtered.sort((a, b) => a.amount - b.amount);
 
@@ -2278,9 +2227,9 @@
 
     function renderHistory() {
       const filtered = getFilteredDonations();
-      const container = document.getElementById('donationList');
-      const empty = document.getElementById('historyEmpty');
-      const countEl = document.getElementById('historyCount');
+      const container = $('donationList');
+      const empty = $('historyEmpty');
+      const countEl = $('historyCount');
 
       if (!filtered.length) {
         container.innerHTML = '';
@@ -2330,17 +2279,20 @@
       }).join('');
     }
 
-    document.getElementById('searchInput').addEventListener('input', renderHistory);
+    $('searchInput').addEventListener('input', renderHistory);
+    // Was an inline onchange="renderHistory()", but renderHistory is module-scoped
+    // and invisible to inline handlers, so sorting silently threw and did nothing.
+    $('sortSelect').addEventListener('change', renderHistory);
 
     // ===== SETTINGS =====
     function loadSettings() {
       const isDark = localStorage.getItem('dt_theme') === 'dark';
-      document.getElementById('darkModeToggle').checked = isDark;
+      $('darkModeToggle').checked = isDark;
 
     }
 
     window.toggleDarkMode = function() {
-      const isDark = document.getElementById('darkModeToggle').checked;
+      const isDark = $('darkModeToggle').checked;
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
       localStorage.setItem('dt_theme', isDark ? 'dark' : 'light');
       document.querySelector('meta[name="theme-color"]').content = isDark ? '#0c1222' : '#10b981';
@@ -2374,10 +2326,10 @@
       const d = donations.find(x => x.id === id);
       if (!d) return;
       deleteTargetId = id;
-      document.getElementById('deleteDonorName').textContent = d.name;
-      document.getElementById('deleteAmount').textContent = fmtCurrency.format(d.amount);
-      document.getElementById('deleteModal').classList.add('show');
-      document.getElementById('confirmDeleteBtn').onclick = () => confirmDelete();
+      $('deleteDonorName').textContent = d.name;
+      $('deleteAmount').textContent = fmtCurrency.format(d.amount);
+      $('deleteModal').classList.add('show');
+      $('confirmDeleteBtn').onclick = () => confirmDelete();
     };
 
     async function confirmDelete() {
@@ -2390,16 +2342,16 @@
       }
     }
 
-    window.closeModal = function(id) {
-      document.getElementById(id).classList.remove('show');
-    };
-    function closeModal(id) { window.closeModal(id); }
+    function closeModal(id) {
+      $(id).classList.remove('show');
+    }
+    window.closeModal = closeModal;
 
     // ===== SUCCESS OVERLAY =====
     function showSuccess(d) {
       const cat = CATEGORIES[d.category] || CATEGORIES.general;
       const dd = d.date ? new Date(d.date) : new Date();
-      document.getElementById('receiptCard').innerHTML = `
+      $('receiptCard').innerHTML = `
         <div class="receipt-header">
           <svg viewBox="0 0 80 80"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><circle cx="40" cy="40" r="36" fill="url(#rg)"/><path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/></svg>
           <span>DonateTrack</span>
@@ -2412,13 +2364,13 @@
         ${d.message ? `<div class="receipt-row"><span class="receipt-label">Message</span><span class="receipt-value" style="font-style:italic">"${sanitize(d.message)}"</span></div>` : ''}
         <div class="receipt-amount">${fmtCurrency.format(d.amount)}</div>
       `;
-      document.getElementById('successOverlay').classList.add('show');
+      $('successOverlay').classList.add('show');
       showConfetti();
     }
 
     window.closeSuccess = function() {
-      document.getElementById('successOverlay').classList.remove('show');
-      document.getElementById('confettiContainer').innerHTML = '';
+      $('successOverlay').classList.remove('show');
+      $('confettiContainer').innerHTML = '';
     };
 
     window.shareReceipt = async function() {
@@ -2440,7 +2392,7 @@
     };
 
     function showConfetti() {
-      const container = document.getElementById('confettiContainer');
+      const container = $('confettiContainer');
       const colors = ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#3b82f6', '#ef4444', '#34d399', '#a78bfa'];
       for (let i = 0; i < 50; i++) {
         const piece = document.createElement('div');
@@ -2459,7 +2411,7 @@
     // ===== TOAST =====
     function showToast(message, type = 'info') {
       const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-      const container = document.getElementById('toastContainer');
+      const container = $('toastContainer');
       const toast = document.createElement('div');
       toast.className = 'toast ' + type;
       toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span><span>${sanitize(message)}</span>`;
@@ -2482,15 +2434,13 @@
       initCategoryPills();
       initCategoryFilters();
 
-
-
       // Splash → Auth check
       setTimeout(() => {
-        document.getElementById('splashScreen').classList.add('hide');
+        $('splashScreen').classList.add('hide');
         setTimeout(() => {
           // Auth state will handle showing login or main app
           if (!auth.currentUser) {
-            document.getElementById('loginScreen').classList.add('show');
+            $('loginScreen').classList.add('show');
           }
         }, 400);
       }, 1800);
