@@ -963,10 +963,7 @@
       <div class="screen-header" style="flex-direction:column; align-items:flex-start; gap:2px;">
         <h1 class="greeting" id="greeting"></h1>
         <p class="date-display" id="dateDisplay"></p>
-        <div class="collector-badge" id="collectorBadge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span id="locationBadge"></span>
-        </div>
+
       </div>
 
       <div class="total-card">
@@ -1045,12 +1042,7 @@
           <div class="field-error" id="amountError"></div>
         </div>
 
-        <div class="form-field" id="locationField">
-          <input type="text" id="locationInput" placeholder=" " autocomplete="off">
-          <label for="locationInput">Location *</label>
-          <div class="field-error" id="locationError"></div>
-          <div class="autocomplete-list" id="locationAutocomplete"></div>
-        </div>
+
 
         <div class="category-select">
           <label>Category</label>
@@ -1135,37 +1127,12 @@
       </div>
 
       <div class="settings-group">
-        <div class="settings-item">
-          <div>
-            <div class="settings-label">Collector</div>
-            <div class="settings-desc" id="settingsCollector">—</div>
-          </div>
-          <div></div>
-        </div>
-        <div class="settings-item">
-          <div>
-            <div class="settings-label">Location</div>
-            <div class="settings-desc" id="settingsLocation">—</div>
-          </div>
-          <div></div>
-        </div>
-        <div class="settings-item">
-          <div>
-            <div class="settings-label">Sync Status</div>
-            <div class="settings-desc"><span class="sync-badge"><span class="dot"></span> Real-time sync active</span></div>
-          </div>
-          <div></div>
-        </div>
-      </div>
-
-      <div class="settings-group">
         <button class="settings-action" onclick="exportCSV()">📊 Export Data as CSV</button>
         <button class="settings-action danger" onclick="signOutUser()">🚪 Sign Out</button>
       </div>
 
       <div class="app-info">
         <p><strong>DonateTrack</strong> v2.0</p>
-        <p>☁️ Cloud Synced · Firebase</p>
         <p>Built with ❤️</p>
       </div>
     </div>
@@ -1481,11 +1448,6 @@
         });
         renderHome();
         renderHistory();
-        // Pre-fill location from session
-        const locInput = document.getElementById('locationInput');
-        if (locInput && !locInput.value && currentLocation) {
-          locInput.value = currentLocation;
-        }
       }, (error) => {
         console.error('Firestore listener error:', error);
         showToast('Connection error. Retrying...', 'error');
@@ -1554,7 +1516,7 @@
       const now = new Date();
       document.getElementById('greeting').innerHTML = `${getGreeting()}, ${sanitize(collectorName || 'Collector')} <span class="greeting-emoji">👋</span>`;
       document.getElementById('dateDisplay').textContent = fmtMonthYear.format(now);
-      document.getElementById('locationBadge').textContent = currentLocation || '—';
+
 
       const cm = now.getMonth(), cy = now.getFullYear();
       const monthDonations = donations.filter(d => {
@@ -1681,35 +1643,12 @@
       el.style.maxHeight = isOpen ? el.scrollHeight + 'px' : '0';
     };
 
-    // Location autocomplete
-    document.getElementById('locationInput').addEventListener('input', function() {
-      const val = this.value.toLowerCase().trim();
-      const list = document.getElementById('locationAutocomplete');
-      if (!val) { list.classList.remove('show'); return; }
-      const matches = [...allLocations].filter(l => l.toLowerCase().includes(val) && l.toLowerCase() !== val);
-      if (matches.length === 0) { list.classList.remove('show'); return; }
-      list.innerHTML = matches.slice(0, 5).map(l => `
-        <div class="autocomplete-item" onclick="pickLocation('${sanitize(l)}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          ${sanitize(l)}
-        </div>`).join('');
-      list.classList.add('show');
-    });
 
-    document.getElementById('locationInput').addEventListener('blur', () => {
-      setTimeout(() => document.getElementById('locationAutocomplete').classList.remove('show'), 200);
-    });
-
-    window.pickLocation = function(loc) {
-      document.getElementById('locationInput').value = loc;
-      document.getElementById('locationAutocomplete').classList.remove('show');
-    };
 
     function validateForm() {
       let valid = true;
       const name = document.getElementById('nameInput').value.trim();
       const amount = document.getElementById('amountInput').value;
-      const location = document.getElementById('locationInput').value.trim();
 
       const nameField = document.getElementById('nameField');
       const nameError = document.getElementById('nameError');
@@ -1732,13 +1671,7 @@
         valid = false;
       } else { amountField.classList.remove('has-error'); amountError.textContent = ''; }
 
-      const locationField = document.getElementById('locationField');
-      const locationError = document.getElementById('locationError');
-      if (!location || location.length < 2) {
-        locationField.classList.add('has-error');
-        locationError.textContent = location ? 'Location must be at least 2 characters' : 'Location is required';
-        valid = false;
-      } else { locationField.classList.remove('has-error'); locationError.textContent = ''; }
+
 
       return valid;
     }
@@ -1749,7 +1682,7 @@
 
       const name = sanitize(document.getElementById('nameInput').value.trim());
       const amount = Math.round(parseFloat(document.getElementById('amountInput').value));
-      const location = sanitize(document.getElementById('locationInput').value.trim());
+      const location = currentLocation || '';
       const message = sanitize(document.getElementById('messageInput').value.trim());
       const phone = sanitize(document.getElementById('phoneInput').value.trim());
       const email = sanitize(document.getElementById('emailInput').value.trim());
@@ -1796,8 +1729,7 @@
       initCategoryPills();
       document.getElementById('optionalFields').style.maxHeight = '0';
       document.getElementById('toggleMoreBtn').classList.remove('open');
-      // Re-fill location from session
-      document.getElementById('locationInput').value = currentLocation;
+
     }
 
     window.startEdit = function(id) {
@@ -1813,7 +1745,7 @@
 
       document.getElementById('nameInput').value = d.name;
       document.getElementById('amountInput').value = d.amount;
-      document.getElementById('locationInput').value = d.location || '';
+
       document.getElementById('messageInput').value = d.message || '';
       document.getElementById('phoneInput').value = d.phone || '';
       document.getElementById('emailInput').value = d.email || '';
@@ -1957,8 +1889,7 @@
     function loadSettings() {
       const isDark = localStorage.getItem('dt_theme') === 'dark';
       document.getElementById('darkModeToggle').checked = isDark;
-      document.getElementById('settingsCollector').textContent = collectorName || '—';
-      document.getElementById('settingsLocation').textContent = currentLocation || '—';
+
     }
 
     window.toggleDarkMode = function() {
@@ -2104,10 +2035,7 @@
       initCategoryPills();
       initCategoryFilters();
 
-      // Pre-fill location from session
-      if (currentLocation) {
-        document.getElementById('locationInput').value = currentLocation;
-      }
+
 
       // Splash → Auth check
       setTimeout(() => {
