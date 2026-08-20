@@ -118,6 +118,30 @@
     .splash-dots span:nth-child(2) { animation-delay: 0.2s; }
     .splash-dots span:nth-child(3) { animation-delay: 0.4s; }
 
+    /* Boot failure state — revealed by the boot watchdog when the app can't start */
+    .boot-error {
+      display: none; max-width: 320px; margin-top: 1.75rem;
+      padding: 0 1.5rem; text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .splash-overlay.boot-failed .splash-dots { display: none; }
+    .splash-overlay.boot-failed .boot-error { display: block; }
+    .boot-error-msg { color: rgba(255,255,255,0.78); font-size: 0.85rem; line-height: 1.55; }
+    .boot-error-detail {
+      color: rgba(201, 168, 76, 0.5); font-size: 0.7rem; margin-top: 0.55rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all;
+    }
+    .boot-retry {
+      margin-top: 1.25rem; padding: 0.7rem 1.6rem;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1.5px solid rgba(201, 168, 76, 0.35);
+      border-radius: var(--radius-sm);
+      color: rgba(227, 200, 119, 0.95); font-family: inherit;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .boot-retry:hover { background: rgba(201, 168, 76, 0.18); border-color: rgba(201, 168, 76, 0.55); }
+
     /* ========================================
        LOGIN SCREEN
        ======================================== */
@@ -1004,6 +1028,12 @@
     <div class="splash-title">DonateTrack</div>
     <div class="splash-subtitle">Track Every Contribution</div>
     <div class="splash-dots"><span></span><span></span><span></span></div>
+
+    <div class="boot-error" id="bootError">
+      <div class="boot-error-msg" id="bootErrorMsg">Couldn't start the app.</div>
+      <div class="boot-error-detail" id="bootErrorDetail"></div>
+      <button class="boot-retry" onclick="location.reload()">Retry</button>
+    </div>
   </div>
 
   <!-- ============ LOGIN SCREEN ============ -->
@@ -1442,15 +1472,84 @@
 
 
   <!-- ========================================================================
-       FIREBASE SDK (ES MODULES VIA CDN)
+       BOOT WATCHDOG
+       Deliberately NOT type="module". The Firebase block below is a module, so
+       if any of its CDN imports fail (offline, DNS, VPN, script blocker) its
+       entire body never executes — init() never runs and the splash would spin
+       forever with no error. This plain script always runs, so it can notice.
+       ======================================================================== -->
+  <script>
+    (function () {
+      var BOOT_TIMEOUT_MS = 8000;
+      var failed = false;
+
+      function fail(msg, detail) {
+        if (failed || window.__dtBooted) return;
+        failed = true;
+        clearTimeout(window.__dtBootTimer);
+        // Whichever check tripped first, being opened straight off disk is the
+        // root cause worth reporting: browsers block ES module imports over
+        // file://, so the vendored SDK can never load that way.
+        if (location.protocol === 'file:') {
+          msg = "This page was opened directly from disk. Browsers block loading " +
+                "JavaScript modules over file://, so the app can't start. Serve this " +
+                "folder over http:// instead — e.g. the Live Server extension.";
+          detail = location.href;
+        }
+        var splash = document.getElementById('splashScreen');
+        var msgEl = document.getElementById('bootErrorMsg');
+        var detailEl = document.getElementById('bootErrorDetail');
+        if (msgEl) msgEl.textContent = msg;
+        if (detailEl) detailEl.textContent = detail || '';
+        if (splash) splash.classList.add('boot-failed');
+      }
+
+      // Called by the module below once init() has completed.
+      window.__dtBootOk = function () {
+        window.__dtBooted = true;
+        clearTimeout(window.__dtBootTimer);
+        // If a slow connection tripped the timeout before the SDK arrived,
+        // the app is fine after all — take the error back down.
+        var splash = document.getElementById('splashScreen');
+        if (splash) splash.classList.remove('boot-failed');
+      };
+
+      // A module script whose imports fail to fetch fires an error event on its
+      // own element. Resource errors don't bubble, so listen in the capture phase.
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'SCRIPT') {
+          fail("Couldn't load the app's libraries.",
+               el.src || 'Firebase SDK import failed (vendor/firebase/)');
+        }
+      }, true);
+
+      // Backstop for anything the error event doesn't surface — a hung request,
+      // or init() throwing before it schedules the splash timer.
+      window.__dtBootTimer = setTimeout(function () {
+        // The file:// case is handled inside fail() above.
+        fail("Couldn't load the Firebase SDK from vendor/firebase/. Check that the " +
+             "vendor folder sits next to this page and its three .js files are intact, " +
+             "then retry.",
+             'vendor/firebase/firebase-{app,auth,firestore}.js');
+      }, BOOT_TIMEOUT_MS);
+    })();
+  </script>
+
+  <!-- ========================================================================
+       FIREBASE SDK (VENDORED LOCALLY — v11.7.3)
+       Served from vendor/firebase/ rather than the gstatic CDN, so a blocked
+       or unreachable CDN can no longer stop the app from starting. To upgrade,
+       re-download the three files and re-point the internal firebase-app.js
+       import inside firebase-auth.js / firebase-firestore.js at "./firebase-app.js".
        ======================================================================== -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { initializeApp } from "./vendor/firebase/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut }
-      from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+      from "./vendor/firebase/firebase-auth.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc,
              onSnapshot, query, orderBy, serverTimestamp, writeBatch }
-      from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+      from "./vendor/firebase/firebase-firestore.js";
 
     // ===== FIREBASE CONFIG =====
     const firebaseConfig = {
@@ -2395,6 +2494,9 @@
           }
         }, 400);
       }, 1800);
+
+      // Stand the boot watchdog down — the module loaded and init() got through.
+      if (window.__dtBootOk) window.__dtBootOk();
     }
 
     init();
