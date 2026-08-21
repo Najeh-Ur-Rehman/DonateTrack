@@ -26,6 +26,11 @@
       --warning: #f59e0b;
 
       --bg: #f0f2f5;
+      /* App backdrop — same geometric pattern and emerald-to-cool gradient family
+         as the login screen. Light variant: emerald stroke, tuned so dark body
+         text and white cards stay readable on top. */
+      --app-bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23047857' stroke-width='0.5' opacity='0.10'%3E%3Cpolygon points='40,8 48,24 40,40 32,24'/%3E%3Cpolygon points='40,40 48,56 40,72 32,56'/%3E%3Cpolygon points='8,40 24,32 40,40 24,48'/%3E%3Cpolygon points='40,40 56,32 72,40 56,48'/%3E%3Cpolygon points='16,16 28,24 24,28 16,28'/%3E%3Cpolygon points='64,16 56,28 52,24 56,16'/%3E%3Cpolygon points='16,64 28,56 24,52 16,56'/%3E%3Cpolygon points='64,64 56,52 52,56 56,64'/%3E%3Ccircle cx='40' cy='40' r='12'/%3E%3C/g%3E%3C/svg%3E");
+      --app-bg-gradient: linear-gradient(160deg, #ecfdf5 0%, #e7f7ef 28%, #eaf4fb 62%, #f1f5f9 100%);
       --bg-card: #ffffff;
       --bg-input: #f8fafc;
       --bg-hover: #f1f5f9;
@@ -52,6 +57,10 @@
 
     html[data-theme="dark"] {
       --bg: #0c1222;
+      /* Dark variant is the login screen's backdrop verbatim — gold stroke over
+         the emerald-to-midnight gradient — so the two match exactly. */
+      --app-bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.12'%3E%3Cpolygon points='40,8 48,24 40,40 32,24'/%3E%3Cpolygon points='40,40 48,56 40,72 32,56'/%3E%3Cpolygon points='8,40 24,32 40,40 24,48'/%3E%3Cpolygon points='40,40 56,32 72,40 56,48'/%3E%3Cpolygon points='16,16 28,24 24,28 16,28'/%3E%3Cpolygon points='64,16 56,28 52,24 56,16'/%3E%3Cpolygon points='16,64 28,56 24,52 16,56'/%3E%3Cpolygon points='64,64 56,52 52,56 56,64'/%3E%3Ccircle cx='40' cy='40' r='12'/%3E%3C/g%3E%3C/svg%3E");
+      --app-bg-gradient: linear-gradient(160deg, #052e16 0%, #064e3b 25%, #0c4a3e 45%, #0a3d5c 70%, #0f172a 100%);
       --bg-card: #1a2332;
       --bg-input: #243044;
       --bg-hover: #243044;
@@ -81,6 +90,17 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       transition: background var(--transition), color var(--transition);
+    }
+
+    /* Shared backdrop, so signing in no longer drops from the patterned login
+       screen onto flat grey. Painted on a fixed pseudo-element rather than
+       background-attachment: fixed, which is unreliable on iOS Safari, and so
+       the gradient stays viewport-sized instead of stretching down long lists. */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background-image: var(--app-bg-pattern), var(--app-bg-gradient);
+      background-color: var(--bg);
     }
 
     ::-webkit-scrollbar { width: 4px; }
