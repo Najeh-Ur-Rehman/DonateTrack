@@ -1656,7 +1656,7 @@
     // The stamp lives in localStorage rather than a bare setTimeout, because an
     // in-memory timer dies on reload — someone could idle for hours, reload, and
     // be straight back in. Persisting it lets the timeout be enforced on boot too.
-    const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+    const IDLE_TIMEOUT_MS = 720 * 60 * 1000; // 720 minutes (12 hours) — about one shift
     const IDLE_CHECK_MS = 30 * 1000;
     const ACTIVITY_WRITE_MS = 30 * 1000;
     const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'visibilitychange'];
