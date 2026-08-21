@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DonateTrack — Donation Manager</title>
+  <title>Zakatify — Donation Manager</title>
   <meta name="description" content="Track and manage donations with ease. Record, search, and export donation data.">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -941,6 +941,34 @@
     .toast.info { border-left: 4px solid var(--accent); }
 
     /* ========================================
+       CONNECTION BANNER
+       ======================================== */
+    .conn-banner {
+      /* The nav pads itself by the safe-area inset, so clear that too. */
+      position: fixed; left: 50%;
+      bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 0.75rem);
+      transform: translateX(-50%) translateY(12px); z-index: 8500;
+      display: flex; align-items: center; gap: 0.6rem;
+      width: calc(100% - 2rem); max-width: 380px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-left: 4px solid var(--warning);
+      border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
+      padding: 0.7rem 1rem; font-size: 0.8rem; font-weight: 500; color: var(--text);
+      /* visibility rather than display, so the slide-in actually animates. */
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+    }
+    .conn-banner.show {
+      opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+    }
+    /* The login screen has no bottom nav to clear. */
+    .conn-banner.no-nav { bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
+    .conn-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--warning);
+    }
+
+    /* ========================================
        ANIMATIONS
        ======================================== */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -1007,7 +1035,7 @@
       <circle cx="40" cy="40" r="36" fill="url(#sg)"/>
       <path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/>
     </svg>
-    <div class="splash-title">DonateTrack</div>
+    <div class="splash-title">Zakatify</div>
     <div class="splash-subtitle">Track Every Contribution</div>
     <div class="splash-dots"><span></span><span></span><span></span></div>
 
@@ -1027,7 +1055,7 @@
           <circle cx="40" cy="40" r="36" fill="url(#lg)"/>
           <path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/>
         </svg>
-        <h2>DonateTrack</h2>
+        <h2>Zakatify</h2>
         <p>Organization Login</p>
       </div>
 
@@ -1102,7 +1130,7 @@
           <circle cx="40" cy="40" r="36" fill="url(#sg2)"/>
           <path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/>
         </svg>
-        <h2>DonateTrack</h2>
+        <h2>Zakatify</h2>
         <p>Create Your Account</p>
       </div>
 
@@ -1332,7 +1360,7 @@
       </div>
 
       <div class="app-info">
-        <p><strong>DonateTrack</strong> v2.0</p>
+        <p><strong>Zakatify</strong> v2.0</p>
         <p>Built with ❤️</p>
       </div>
     </div>
@@ -1450,6 +1478,14 @@
   <!-- ============ TOAST CONTAINER ============ -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- ============ CONNECTION BANNER ============
+       Sits above the bottom nav. Without it the app shows cached figures with
+       no hint they may be stale. -->
+  <div class="conn-banner" id="offlineBanner" role="status" aria-live="polite">
+    <span class="conn-dot"></span>
+    <span>Offline — changes will sync when you're back</span>
+  </div>
+
   <!-- ========================================================================
        BOOT WATCHDOG
        Deliberately NOT type="module". The Firebase block below is a module, so
@@ -1463,9 +1499,9 @@
       var failed = false;
 
       function fail(msg, detail) {
-        if (failed || window.__dtBooted) return;
+        if (failed || window.__zkBooted) return;
         failed = true;
-        clearTimeout(window.__dtBootTimer);
+        clearTimeout(window.__zkBootTimer);
         // Whichever check tripped first, being opened straight off disk is the
         // root cause worth reporting: browsers block ES module imports over
         // file://, so the vendored SDK can never load that way.
@@ -1484,9 +1520,9 @@
       }
 
       // Called by the module below once init() has completed.
-      window.__dtBootOk = function () {
-        window.__dtBooted = true;
-        clearTimeout(window.__dtBootTimer);
+      window.__zkBootOk = function () {
+        window.__zkBooted = true;
+        clearTimeout(window.__zkBootTimer);
         // If a slow connection tripped the timeout before the SDK arrived,
         // the app is fine after all — take the error back down.
         var splash = document.getElementById('splashScreen');
@@ -1505,7 +1541,7 @@
 
       // Backstop for anything the error event doesn't surface — a hung request,
       // or init() throwing before it schedules the splash timer.
-      window.__dtBootTimer = setTimeout(function () {
+      window.__zkBootTimer = setTimeout(function () {
         // The file:// case is handled inside fail() above.
         fail("Couldn't load the Firebase SDK from vendor/firebase/. Check that the " +
              "vendor folder sits next to this page and its three .js files are intact, " +
@@ -1526,11 +1562,38 @@
     import { initializeApp } from "./vendor/firebase/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut }
       from "./vendor/firebase/firebase-auth.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc,
+    import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+             memoryLocalCache, enableNetwork, disableNetwork,
+             collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc,
              onSnapshot, query, orderBy, serverTimestamp, writeBatch }
       from "./vendor/firebase/firebase-firestore.js";
 
+    // ===== STORAGE KEY MIGRATION (DonateTrack → Zakatify) =====
+    // Preferences were namespaced dt_* before the rename. Carry them across once
+    // so nobody loses their theme or collector details on the first load after
+    // it. Runs before any state below reads these keys.
+    (function migrateStorageKeys() {
+      const renamed = {
+        dt_collector: 'zk_collector', dt_location: 'zk_location',
+        dt_theme: 'zk_theme', dt_last_activity: 'zk_last_activity'
+      };
+      try {
+        for (const [oldKey, newKey] of Object.entries(renamed)) {
+          const value = localStorage.getItem(oldKey);
+          if (value !== null && localStorage.getItem(newKey) === null) {
+            localStorage.setItem(newKey, value);
+          }
+          localStorage.removeItem(oldKey);
+        }
+      } catch { /* storage unavailable — defaults apply */ }
+    })();
+
     // ===== FIREBASE CONFIG =====
+    // Still reads donatetrack-2241b after the rename to Zakatify, and that is
+    // deliberate: a Firebase project ID is immutable, so this is the permanent
+    // address of the backend holding every donation and account. The project's
+    // display name in the Firebase console is the part that says Zakatify.
+    // Nothing here is user-visible.
     const firebaseConfig = {
       apiKey: "AIzaSyAg0OTPJ3KvsjTnVWzDU4WOaZP8Xs63tNo",
       authDomain: "donatetrack-2241b.firebaseapp.com",
@@ -1542,7 +1605,24 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+
+    // Cache donations in IndexedDB rather than the default memory-only cache, so
+    // a reload with no connection still opens a populated app instead of an
+    // empty one, and writes made offline queue up locally until they can sync.
+    //
+    // persistentMultipleTabManager, not the single-tab default: the app is
+    // routinely open in more than one tab, and single-tab persistence throws
+    // failed-precondition in the second one.
+    let db;
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+      });
+    } catch (e) {
+      // Private windows and some embedded webviews have no usable IndexedDB.
+      console.warn('Persistent cache unavailable, falling back to memory:', e);
+      db = initializeFirestore(app, { localCache: memoryLocalCache() });
+    }
 
     // ===== CONSTANTS =====
     const CATEGORIES = {
@@ -1579,8 +1659,8 @@
     let deleteTargetId = null;
     let unsubscribeSnapshot = null;
     let userProfile = null;
-    let collectorName = localStorage.getItem('dt_collector') || '';
-    let currentLocation = localStorage.getItem('dt_location') || '';
+    let collectorName = localStorage.getItem('zk_collector') || '';
+    let currentLocation = localStorage.getItem('zk_location') || '';
 
     // ===== UTILITIES =====
     // Every id looked up here belongs to static markup that is never itself
@@ -1644,15 +1724,28 @@
       'auth/invalid-credential': 'Wrong password. Please try again.',
       'auth/too-many-requests': 'Too many attempts. Please try again later.',
       'auth/email-already-in-use': 'This User ID is already taken.',
-      'auth/weak-password': 'Password is too weak (min 6 characters).'
+      'auth/weak-password': 'Password is too weak (min 6 characters).',
+      // Signing in is the one thing the cache can't cover — it needs the network.
+      'auth/network-request-failed': "You're offline. Connect to the internet to sign in."
     };
     function authError(err, fallback) {
       return AUTH_ERRORS[err && err.code] || fallback;
     }
 
     // User IDs double as emails on a private domain.
+    const EMAIL_DOMAIN = '@zakatify.app';
+    // Accounts created before the rename are registered in Firebase Auth under
+    // the old domain, and an Auth email can't be rewritten from the client. So
+    // new accounts get the new domain and sign-in falls back to the old one,
+    // which keeps every existing collector able to log in.
+    const LEGACY_EMAIL_DOMAIN = '@donatetrack.app';
+
     function toEmail(userId) {
-      return userId.includes('@') ? userId : userId + '@donatetrack.app';
+      return userId.includes('@') ? userId : userId + EMAIL_DOMAIN;
+    }
+
+    function toLegacyEmail(userId) {
+      return userId.includes('@') ? null : userId + LEGACY_EMAIL_DOMAIN;
     }
 
     function shortAmount(n) {
@@ -1695,7 +1788,7 @@
     // Unconditional write, for moments where the stamp must be fresh right now.
     function resetActivity() {
       lastActivityWrite = Date.now();
-      localStorage.setItem('dt_last_activity', String(lastActivityWrite));
+      localStorage.setItem('zk_last_activity', String(lastActivityWrite));
     }
 
     // Throttled wrapper — the activity events fire on every tap and keystroke.
@@ -1705,7 +1798,7 @@
     }
 
     function isSessionExpired() {
-      const stamp = Number(localStorage.getItem('dt_last_activity'));
+      const stamp = Number(localStorage.getItem('zk_last_activity'));
       // A missing or unparseable stamp counts as expired: we can't prove recent
       // activity, so the safe answer is to ask for credentials again.
       if (!stamp) return true;
@@ -1728,7 +1821,7 @@
 
     async function endSession() {
       stopIdleWatch();
-      localStorage.removeItem('dt_last_activity');
+      localStorage.removeItem('zk_last_activity');
       if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
       await signOut(auth);
       // Explain the sudden login screen rather than leaving it a mystery.
@@ -1750,12 +1843,28 @@
       // the await resolves, and a stale stamp would sign the user right back out.
       resetActivity();
 
+      const password = $('loginPassword').value;
       try {
         // Profile (name, location) is loaded in onAuthStateChanged.
-        await signInWithEmailAndPassword(auth, toEmail(userId), $('loginPassword').value);
+        await signInWithEmailAndPassword(auth, toEmail(userId), password);
       } catch (err) {
-        showMsg(errorEl, authError(err, 'Invalid credentials. Please try again.'));
-        setIdle(btn, 'Sign In');
+        // "No such account" arrives as user-not-found, or as invalid-credential
+        // where email-enumeration protection is on — which is also what a wrong
+        // password looks like, so retry the pre-rename domain on both and report
+        // the original error if that fails too.
+        const retryable = err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential';
+        const legacy = toLegacyEmail(userId);
+        let signedIn = false;
+        if (retryable && legacy) {
+          try {
+            await signInWithEmailAndPassword(auth, legacy, password);
+            signedIn = true;
+          } catch { /* fall through to the original error */ }
+        }
+        if (!signedIn) {
+          showMsg(errorEl, authError(err, 'Invalid credentials. Please try again.'));
+          setIdle(btn, 'Sign In');
+        }
       }
     });
 
@@ -1790,6 +1899,11 @@
 
       try {
         await sendPasswordResetEmail(auth, toEmail(userId));
+        // We can't tell which domain the account lives under — with email
+        // enumeration protection a reset for an unknown address succeeds
+        // silently — so cover the pre-rename one too.
+        const legacy = toLegacyEmail(userId);
+        if (legacy) await sendPasswordResetEmail(auth, legacy).catch(() => {});
         showMsg(successEl, 'A password reset link has been sent. Please check the Firebase Console or your email action link to complete the reset. You can also contact your administrator.');
         $('forgotForm').reset();
       } catch (err) {
@@ -1822,7 +1936,7 @@
       hide(errorEl);
       setBusy(btn, 'Creating account...');
 
-      const email = userId + '@donatetrack.app';
+      const email = toEmail(userId);
 
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -1855,29 +1969,31 @@
             userProfile = profile;
             collectorName = profile.name || '';
             currentLocation = profile.location || '';
-            localStorage.setItem('dt_collector', collectorName);
-            localStorage.setItem('dt_location', currentLocation);
+            localStorage.setItem('zk_collector', collectorName);
+            localStorage.setItem('zk_location', currentLocation);
           }
         } catch (e) { console.error('Failed to load profile:', e); }
         $('loginScreen').classList.remove('show');
         $('signupScreen').classList.remove('show');
         $('forgotScreen').classList.remove('show');
         $('mainApp').classList.add('show');
+        updateConnBanner();
         startListening();
         checkMigration();
       } else {
         stopIdleWatch();
-        localStorage.removeItem('dt_last_activity');
+        localStorage.removeItem('zk_last_activity');
         $('mainApp').classList.remove('show');
         $('loginScreen').classList.add('show');
         if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
         donations = [];
+        updateConnBanner();
       }
     });
 
     window.signOutUser = async function() {
       stopIdleWatch();
-      localStorage.removeItem('dt_last_activity');
+      localStorage.removeItem('zk_last_activity');
       if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
       await signOut(auth);
       $('loginBtn').disabled = false;
@@ -1918,23 +2034,83 @@
       setBusy(btn, 'Saving...');
 
       try {
-        await updateDoc(doc(db, 'organizations', auth.currentUser.uid), { name, location });
+        const status = await commit(
+          updateDoc(doc(db, 'organizations', auth.currentUser.uid), { name, location }));
         collectorName = name;
         currentLocation = location;
-        localStorage.setItem('dt_collector', name);
-        localStorage.setItem('dt_location', location);
+        localStorage.setItem('zk_collector', name);
+        localStorage.setItem('zk_location', location);
         userProfile.name = name;
         userProfile.location = location;
         $('profileAvatar').textContent = name[0].toUpperCase();
         $('profileDisplayName').textContent = name;
         renderHome();
-        showToast('Profile updated!', 'success');
+        showToast(status === 'queued' ? OFFLINE_SAVE_MSG : 'Profile updated!',
+                  status === 'queued' ? 'info' : 'success');
       } catch (err) {
         console.error('Profile update failed:', err);
         showToast('Failed to save changes', 'error');
       }
       setIdle(btn, 'Save Changes');
     };
+
+    // ===== CONNECTION STATE =====
+    // Left to itself the SDK retries a dropped connection on a backoff loop
+    // forever, which floods the console with ERR_INTERNET_DISCONNECTED and gets
+    // the app nowhere. Shutting the network down while the device is offline
+    // stops the retries; reads keep coming from the IndexedDB cache and writes
+    // keep queueing, so nothing else changes.
+    let networkEnabled = true;
+
+    function isOnline() { return navigator.onLine !== false; }
+
+    function applyNetworkState() {
+      const wanted = isOnline();
+      if (wanted === networkEnabled) return;
+      networkEnabled = wanted;
+      // Redraw first: the banner shouldn't wait on the SDK to settle.
+      updateConnBanner();
+      (wanted ? enableNetwork(db) : disableNetwork(db))
+        .catch(e => console.warn('Could not toggle Firestore network:', e));
+    }
+
+    function updateConnBanner() {
+      const banner = $('offlineBanner');
+      // The login screen has no bottom nav to sit above.
+      banner.classList.toggle('no-nav', !$('mainApp').classList.contains('show'));
+      banner.classList.toggle('show', !isOnline());
+    }
+
+    window.addEventListener('online', applyNetworkState);
+    window.addEventListener('offline', applyNetworkState);
+
+    // Firestore resolves a write promise only once the server acknowledges it,
+    // so awaiting one with no connection never returns — the button would sit
+    // on "Saving…" forever. The write has already been applied to the local
+    // cache and queued for sync by then, so treat a missing ack as success and
+    // say it will sync later. Online, this behaves exactly as a bare await:
+    // permission and validation errors still reject through to the caller.
+    const ACK_TIMEOUT_MS = 10000;
+    const OFFLINE_SAVE_MSG = "Saved offline — will sync when you're back";
+    function watchQueued(promise) {
+      promise.catch(err => console.error('Queued write failed:', err));
+      return 'queued';
+    }
+    async function commit(promise) {
+      if (!isOnline()) return watchQueued(promise);
+      // Covers the case navigator.onLine misses: a link that's up but can't
+      // actually reach Firestore.
+      let timer;
+      try {
+        const timeout = new Promise(resolve => {
+          timer = setTimeout(() => resolve('queued'), ACK_TIMEOUT_MS);
+        });
+        const status = await Promise.race([promise.then(() => 'synced'), timeout]);
+        return status === 'queued' ? watchQueued(promise) : 'synced';
+      } finally {
+        clearTimeout(timer);
+      }
+    }
 
     // ===== FIRESTORE REAL-TIME LISTENER =====
     function startListening() {
@@ -1984,10 +2160,13 @@
             updatedAt: new Date()
           });
         });
-        await batch.commit();
+        const status = await commit(batch.commit());
         localStorage.removeItem('donations');
         closeModal('migrationModal');
-        showToast(`${raw.length} donations uploaded to cloud!`, 'success');
+        showToast(status === 'queued'
+          ? `${raw.length} donations saved offline — will sync when you're back`
+          : `${raw.length} donations uploaded to cloud!`,
+          status === 'queued' ? 'info' : 'success');
       } catch (err) {
         console.error('Migration error:', err);
         showToast('Migration failed. Try again.', 'error');
@@ -2187,11 +2366,12 @@
 
       try {
         if (editingId) {
-          await updateDoc(doc(db, 'donations', editingId), {
+          const status = await commit(updateDoc(doc(db, 'donations', editingId), {
             name, amount, location, message, phone, email,
             category: selectedCategory, updatedAt: serverTimestamp()
-          });
-          showToast('Donation updated successfully!', 'success');
+          }));
+          showToast(status === 'queued' ? OFFLINE_SAVE_MSG : 'Donation updated successfully!',
+                    status === 'queued' ? 'info' : 'success');
           cancelEdit();
         } else {
           const newData = {
@@ -2201,10 +2381,12 @@
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           };
-          await addDoc(collection(db, 'donations'), newData);
+          const status = await commit(addDoc(collection(db, 'donations'), newData));
           lastDonation = { ...newData, date: new Date().toISOString() };
           showSuccess(lastDonation);
           resetForm();
+          // Toasts sit above the success overlay, so this stays visible.
+          if (status === 'queued') showToast(OFFLINE_SAVE_MSG, 'info');
         }
       } catch (err) {
         console.error('Save error:', err);
@@ -2388,7 +2570,7 @@
 
     // ===== SETTINGS =====
     function loadSettings() {
-      const isDark = localStorage.getItem('dt_theme') === 'dark';
+      const isDark = localStorage.getItem('zk_theme') === 'dark';
       $('darkModeToggle').checked = isDark;
 
     }
@@ -2396,7 +2578,7 @@
     window.toggleDarkMode = function() {
       const isDark = $('darkModeToggle').checked;
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-      localStorage.setItem('dt_theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('zk_theme', isDark ? 'dark' : 'light');
       document.querySelector('meta[name="theme-color"]').content = isDark ? '#0c1222' : '#10b981';
     };
 
@@ -2436,9 +2618,11 @@
 
     async function confirmDelete() {
       try {
-        await deleteDoc(doc(db, 'donations', deleteTargetId));
+        const status = await commit(deleteDoc(doc(db, 'donations', deleteTargetId)));
         closeModal('deleteModal');
-        showToast('Donation deleted', 'success');
+        showToast(status === 'queued' ? "Deleted offline — will sync when you're back"
+                                      : 'Donation deleted',
+                  status === 'queued' ? 'info' : 'success');
       } catch (err) {
         showToast('Failed to delete. Try again.', 'error');
       }
@@ -2456,7 +2640,7 @@
       $('receiptCard').innerHTML = `
         <div class="receipt-header">
           <svg viewBox="0 0 80 80"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><circle cx="40" cy="40" r="36" fill="url(#rg)"/><path d="M40 56s-15-9-15-18c0-5.5 3.8-9 8-9 2.8 0 5.2 1.6 7 4.2 1.8-2.6 4.2-4.2 7-4.2 4.2 0 8 3.5 8 9 0 9-15 18-15 18z" fill="white"/></svg>
-          <span>DonateTrack</span>
+          <span>Zakatify</span>
         </div>
         <div class="receipt-row"><span class="receipt-label">Donor</span><span class="receipt-value">${sanitize(d.name)}</span></div>
         <div class="receipt-row"><span class="receipt-label">Category</span><span class="receipt-value"><span class="cat-tag" style="background:${cat.bg};color:${cat.color}">${cat.label}</span></span></div>
@@ -2479,7 +2663,7 @@
       if (!lastDonation) return;
       const d = lastDonation;
       const cat = (categoryOf(d.category)).label;
-      const text = `🎉 Donation Receipt — DonateTrack\n\nDonor: ${d.name}\nAmount: ${fmtCurrency.format(d.amount)}\nCategory: ${cat}\nLocation: ${d.location || '—'}\nCollector: ${d.collector || collectorName}\nDate: ${fmtDate.format(new Date(d.date || Date.now()))}\n${d.message ? 'Message: "' + d.message + '"\n' : ''}`;
+      const text = `🎉 Donation Receipt — Zakatify\n\nDonor: ${d.name}\nAmount: ${fmtCurrency.format(d.amount)}\nCategory: ${cat}\nLocation: ${d.location || '—'}\nCollector: ${d.collector || collectorName}\nDate: ${fmtDate.format(new Date(d.date || Date.now()))}\n${d.message ? 'Message: "' + d.message + '"\n' : ''}`;
 
       if (navigator.share) {
         try { await navigator.share({ title: 'Donation Receipt', text }); } catch {}
@@ -2527,7 +2711,7 @@
 
     // ===== INIT =====
     function init() {
-      const savedTheme = localStorage.getItem('dt_theme') || 'light';
+      const savedTheme = localStorage.getItem('zk_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       if (savedTheme === 'dark') {
         document.querySelector('meta[name="theme-color"]').content = '#0c1222';
@@ -2535,6 +2719,11 @@
 
       initCategoryPills();
       initCategoryFilters();
+
+      // A page loaded while already offline gets no 'offline' event, so settle
+      // the network state and the banner up front.
+      applyNetworkState();
+      updateConnBanner();
 
       // Splash → Auth check
       setTimeout(() => {
@@ -2548,7 +2737,7 @@
       }, 1800);
 
       // Stand the boot watchdog down — the module loaded and init() got through.
-      if (window.__dtBootOk) window.__dtBootOk();
+      if (window.__zkBootOk) window.__zkBootOk();
     }
 
     init();
