@@ -1647,6 +1647,66 @@
       return new Date();
     }
 
+    // ===== IDLE SESSION =====
+    // Firebase defaults to browserLocalPersistence, which keeps a session alive
+    // across reloads and restarts indefinitely. We keep that convenience (a
+    // collector shouldn't retype credentials all day) but bound it: sign out
+    // after a stretch of inactivity.
+    //
+    // The stamp lives in localStorage rather than a bare setTimeout, because an
+    // in-memory timer dies on reload — someone could idle for hours, reload, and
+    // be straight back in. Persisting it lets the timeout be enforced on boot too.
+    const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+    const IDLE_CHECK_MS = 30 * 1000;
+    const ACTIVITY_WRITE_MS = 30 * 1000;
+    const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'visibilitychange'];
+
+    let idleTimer = null;
+    let lastActivityWrite = 0;
+
+    // Unconditional write, for moments where the stamp must be fresh right now.
+    function resetActivity() {
+      lastActivityWrite = Date.now();
+      localStorage.setItem('dt_last_activity', String(lastActivityWrite));
+    }
+
+    // Throttled wrapper — the activity events fire on every tap and keystroke.
+    function markActivity() {
+      if (Date.now() - lastActivityWrite < ACTIVITY_WRITE_MS) return;
+      resetActivity();
+    }
+
+    function isSessionExpired() {
+      const stamp = Number(localStorage.getItem('dt_last_activity'));
+      // A missing or unparseable stamp counts as expired: we can't prove recent
+      // activity, so the safe answer is to ask for credentials again.
+      if (!stamp) return true;
+      return Date.now() - stamp > IDLE_TIMEOUT_MS;
+    }
+
+    function onActivity() { markActivity(); }
+
+    function startIdleWatch() {
+      if (idleTimer) return; // idempotent — onAuthStateChanged can fire more than once
+      ACTIVITY_EVENTS.forEach(evt => document.addEventListener(evt, onActivity, { passive: true }));
+      idleTimer = setInterval(() => { if (isSessionExpired()) endSession(); }, IDLE_CHECK_MS);
+    }
+
+    function stopIdleWatch() {
+      ACTIVITY_EVENTS.forEach(evt => document.removeEventListener(evt, onActivity));
+      clearInterval(idleTimer);
+      idleTimer = null;
+    }
+
+    async function endSession() {
+      stopIdleWatch();
+      localStorage.removeItem('dt_last_activity');
+      if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+      await signOut(auth);
+      // Explain the sudden login screen rather than leaving it a mystery.
+      showToast('Signed out due to inactivity', 'info');
+    }
+
     // ===== AUTH =====
     $('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1657,6 +1717,10 @@
 
       hide(errorEl);
       setBusy(btn, 'Signing in...');
+
+      // Stamp before signing in, not after: onAuthStateChanged can fire before
+      // the await resolves, and a stale stamp would sign the user right back out.
+      resetActivity();
 
       try {
         // Profile (name, location) is loaded in onAuthStateChanged.
@@ -1750,6 +1814,11 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Check before any Firestore work, so an expired session costs no reads.
+        if (isSessionExpired()) { await endSession(); return; }
+        resetActivity();
+        startIdleWatch();
+
         // Load profile from Firestore
         try {
           const profileSnap = await getDoc(doc(db, 'organizations', user.uid));
@@ -1769,6 +1838,8 @@
         startListening();
         checkMigration();
       } else {
+        stopIdleWatch();
+        localStorage.removeItem('dt_last_activity');
         $('mainApp').classList.remove('show');
         $('loginScreen').classList.add('show');
         if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
@@ -1777,6 +1848,8 @@
     });
 
     window.signOutUser = async function() {
+      stopIdleWatch();
+      localStorage.removeItem('dt_last_activity');
       if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
       await signOut(auth);
       $('loginBtn').disabled = false;
