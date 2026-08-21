@@ -1546,13 +1546,21 @@
 
     // ===== CONSTANTS =====
     const CATEGORIES = {
-      general:   { label: 'General',   color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
-      medical:   { label: 'Medical',   color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-      education: { label: 'Education', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
-      food:      { label: 'Food',      color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-      emergency: { label: 'Emergency', color: '#ec4899', bg: 'rgba(236,72,153,0.12)' },
-      other:     { label: 'Other',     color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' }
+      zakat:      { label: 'Zakat',         color: '#059669', bg: 'rgba(5,150,105,0.12)' },
+      zakat_fitr: { label: 'Zakat-ul-Fitr', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+      sadaqah:    { label: 'Sadaqah',       color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+      riba:       { label: 'Riba',          color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+      other:      { label: 'Others',        color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' }
     };
+    const DEFAULT_CATEGORY = 'zakat';
+
+    // Donations recorded under the previous category set (general, medical,
+    // education, food, emergency) still carry those keys in Firestore, so every
+    // lookup resolves through here and shows them as "Others" rather than
+    // breaking on an undefined category.
+    function categoryOf(key) {
+      return CATEGORIES[key] || CATEGORIES.other;
+    }
 
     const AVATAR_COLORS = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#14b8a6','#f97316','#06b6d4'];
 
@@ -1564,7 +1572,7 @@
     // ===== STATE =====
     let donations = [];
     let editingId = null;
-    let selectedCategory = 'general';
+    let selectedCategory = DEFAULT_CATEGORY;
     let currentTimeFilter = 'all';
     let currentCatFilter = 'all';
     let lastDonation = null;
@@ -1966,7 +1974,7 @@
           batch.set(ref, {
             name: d.name || 'Unknown',
             amount: Number(d.amount) || 0,
-            category: d.category || 'general',
+            category: 'other',
             location: 'Migrated',
             collector: 'Migrated',
             message: d.message || '',
@@ -2210,7 +2218,7 @@
       document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
       document.querySelectorAll('.form-field').forEach(f => f.classList.remove('has-error'));
       document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
-      selectedCategory = 'general';
+      selectedCategory = DEFAULT_CATEGORY;
       initCategoryPills();
       $('optionalFields').style.maxHeight = '0';
       $('toggleMoreBtn').classList.remove('open');
@@ -2234,7 +2242,8 @@
       $('messageInput').value = d.message || '';
       $('phoneInput').value = d.phone || '';
       $('emailInput').value = d.email || '';
-      selectCategory(d.category || 'general');
+      // A legacy category has no pill to highlight, so fall back to Others.
+      selectCategory(CATEGORIES[d.category] ? d.category : 'other');
 
       if (d.phone || d.email) {
         $('optionalFields').style.maxHeight = '200px';
@@ -2336,7 +2345,7 @@
       countEl.textContent = `${filtered.length} donation${filtered.length !== 1 ? 's' : ''} · ${fmtCurrency.format(total)}`;
 
       container.innerHTML = filtered.map((d, i) => {
-        const cat = CATEGORIES[d.category] || CATEGORIES.general;
+        const cat = categoryOf(d.category);
         const dd = getDonationDate(d);
         const msgHtml = d.message ? `<div class="card-message">"${sanitize(d.message)}"</div>` : '';
         const locHtml = d.location ? `<span class="location-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${sanitize(d.location)}</span>` : '';
@@ -2395,7 +2404,7 @@
       if (!donations.length) { showToast('No data to export', 'error'); return; }
       const headers = ['Name', 'Amount', 'Category', 'Location', 'Collector', 'Message', 'Phone', 'Email', 'Date'];
       const rows = donations.map(d => [
-        d.name, d.amount, (CATEGORIES[d.category] || CATEGORIES.general).label,
+        d.name, d.amount, (categoryOf(d.category)).label,
         d.location || '', d.collector || '',
         d.message || '', d.phone || '', d.email || '',
         getDonationDate(d).toLocaleString('en-IN')
@@ -2442,7 +2451,7 @@
 
     // ===== SUCCESS OVERLAY =====
     function showSuccess(d) {
-      const cat = CATEGORIES[d.category] || CATEGORIES.general;
+      const cat = categoryOf(d.category);
       const dd = d.date ? new Date(d.date) : new Date();
       $('receiptCard').innerHTML = `
         <div class="receipt-header">
@@ -2469,7 +2478,7 @@
     window.shareReceipt = async function() {
       if (!lastDonation) return;
       const d = lastDonation;
-      const cat = (CATEGORIES[d.category] || CATEGORIES.general).label;
+      const cat = (categoryOf(d.category)).label;
       const text = `🎉 Donation Receipt — DonateTrack\n\nDonor: ${d.name}\nAmount: ${fmtCurrency.format(d.amount)}\nCategory: ${cat}\nLocation: ${d.location || '—'}\nCollector: ${d.collector || collectorName}\nDate: ${fmtDate.format(new Date(d.date || Date.now()))}\n${d.message ? 'Message: "' + d.message + '"\n' : ''}`;
 
       if (navigator.share) {
